@@ -13,6 +13,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from datetime import timedelta  # Lo utilizaremos para la duracion de los tokens JWT
+
+
 
 # Cargar las variables de entorno desde el archivo .env
 load_dotenv()
@@ -44,6 +47,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
      'corsheaders',
      'rest_framework',
+      'rest_framework_simplejwt',
      'api', 
 ]
 
@@ -96,6 +100,22 @@ DATABASES = {
     }
 }
 
+# Configuración de REST Framework con JWT
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+}
+
+# Configuración de Simple JWT
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=1),  # Token válido por 1 día
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),  # Refresh token válido por 7 días
+    'ROTATE_REFRESH_TOKENS': True,  # Refrescar el token cada vez que se haga login
+    'BLACKLIST_AFTER_ROTATION': True,  # Invalida los refresh tokens antiguos
+    'AUTH_HEADER_TYPES': ('Bearer',),  # El token se enviará en los headers como 'Bearer TOKEN'
+}
+
 
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
@@ -137,3 +157,6 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Usaremos nuestro modelo de usuario
+AUTH_USER_MODEL = 'api.CustomUser'
