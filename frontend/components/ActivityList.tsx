@@ -1,98 +1,63 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, Image, FlatList, StyleSheet, ActivityIndicator } from "react-native";
-import { fetchActivities } from "../services/activityService";
-import type { Activity } from "../types/Activity";
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, StyleSheet, Alert, Image } from "react-native";
+import api from "../services/api";
+import { Activity } from "../types/Activity"; 
 
 export const ActivityList: React.FC = () => {
   const [activities, setActivities] = useState<Activity[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    loadActivities();
+    const fetchActivities = async () => {
+      try {
+        const response = await api.get("actividades/");
+        console.log("Datos recibidos:", response.data); 
+        setActivities(response.data);
+      } catch (error) {
+        Alert.alert("Error", "No tienes permisos o el token es inválido");
+      }
+    };
+
+    fetchActivities();
   }, []);
-
-  const loadActivities = async () => {
-    try {
-      const fetchedActivities = await fetchActivities();
-      setActivities(fetchedActivities);
-      setLoading(false);
-    } catch (err) {
-      setError("Failed to load activities. Please try again later.");
-      setLoading(false);
-    }
-  };
-
-  const renderActivity = ({ item }: { item: Activity }) => (
-    <View style={styles.activityItem}>
-      <Image source={{ uri: item.url_imagen }} style={styles.activityImage} />
-      <View style={styles.activityDetails}>
-        <Text style={styles.activityName}>{item.nombre}</Text>
-        <Text style={styles.activityDescription}>{item.descripcion}</Text>
-        <Text style={styles.activityCity}>{item.ciudad}</Text>
-      </View>
-    </View>
-  );
-
-  if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" />;
-  }
-
-  if (error) {
-    return <Text style={styles.errorText}>{error}</Text>;
-  }
 
   return (
     <FlatList
       data={activities}
-      renderItem={renderActivity}
       keyExtractor={(item) => item.id.toString()}
-      contentContainerStyle={styles.listContainer}
+      renderItem={({ item }) => (
+        <View style={styles.card}>
+          <Image source={{ uri: item.url_imagen }} style={styles.image} />
+          <Text style={styles.name}>{item.nombre || "Sin nombre"}</Text>
+          <Text>{item.descripcion || "Sin descripción"}</Text>
+          <Text style={styles.info}>Ciudad: {item.ciudad}</Text>
+          <Text style={styles.info}>Ubicación: {item.ubicacion}</Text>
+        </View>
+      )}
     />
   );
 };
 
 const styles = StyleSheet.create({
-  listContainer: {
-    padding: 16,
-  },
-  activityItem: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    marginBottom: 16,
-    overflow: "hidden",
+  card: {
+    padding: 15,
+    backgroundColor: "#f9f9f9",
+    marginVertical: 10,
+    borderRadius: 10,
     elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
   },
-  activityImage: {
+  image: {
     width: "100%",
     height: 200,
-    resizeMode: "cover",
+    borderRadius: 10,
   },
-  activityDetails: {
-    padding: 16,
-  },
-  activityName: {
+  name: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 8,
   },
-  activityDescription: {
+  info: {
     fontSize: 14,
-    color: "#666",
-    marginBottom: 8,
-  },
-  activityCity: {
-    fontSize: 14,
-    color: "#888",
-  },
-  errorText: {
-    fontSize: 16,
-    color: "red",
-    textAlign: "center",
-    marginTop: 20,
+    color: "gray",
   },
 });
+
+export default ActivityList;
