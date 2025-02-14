@@ -11,5 +11,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['username', 'email', 'password', 'foto_perfil'] 
+        extra_kwargs = {'password': {'write_only': True}}  # La contraseña no se muestra en la respuesta
 
 
