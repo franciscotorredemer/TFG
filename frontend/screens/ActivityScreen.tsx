@@ -1,12 +1,12 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { ActivityList } from "../components/ActivityList";
+import { ActivityList } from "../components/ActivityList"; 
 
 export const ActivityScreen: React.FC = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Actividades</Text>
-      <ActivityList />
+      <ActivityList />  
     </View>
   );
 };
@@ -23,3 +23,5 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
 });
+
+export default ActivityScreen;

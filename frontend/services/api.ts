@@ -1,29 +1,18 @@
-const API_URL = "http://127.0.0.1:8000/api/";
+import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const headersList = {
-  Accept: "application/json",
-  "User-Agent": "YourApp",
-};
+const API_URL = "http://127.0.0.1:8000/api/"; 
 
-const fetchApi = async (endpoint: string, options: RequestInit = {}) => {
-  try {
-    const response = await fetch(`${API_URL}${endpoint}`, {
-      method: "GET", 
-      headers: headersList,
-      ...options,
-    });
+const api = axios.create({
+  baseURL: API_URL,
+});
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    return data;
-  } catch (error) {
-    console.error("API call failed:", error);
-    throw error;
+api.interceptors.request.use(async (config) => {
+  const token = await AsyncStorage.getItem("access_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
-};
+  return config;
+});
 
-
-export default fetchApi;
+export default api;
