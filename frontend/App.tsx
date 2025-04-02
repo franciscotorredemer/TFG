@@ -5,6 +5,8 @@ import PantallaInicio from "./screens/PantallaInicio";
 import PantallaLogin from "./screens/PantallaLogin";
 import PantallaRegistro from "./screens/PantallaRegistro";
 import ActivityScreen from "./screens/ActivityScreen";
+import PantallaPrincipal from "./screens/PantallaPrincipal";
+import MisViajes from "./screens/MisViajes";
 
 const Stack = createStackNavigator();
 
@@ -15,7 +17,8 @@ const App: React.FC = () => {
         <Stack.Screen name="Inicio" component={PantallaInicio} />
         <Stack.Screen name="Login" component={PantallaLogin} />
         <Stack.Screen name="Registro" component={PantallaRegistro} />
-        <Stack.Screen name="Activities" component={ActivityScreen} />
+        <Stack.Screen name="Activities" component={PantallaPrincipal} />
+        <Stack.Screen name="MisViajes" component={MisViajes} />
       </Stack.Navigator>
     </NavigationContainer>
   );
