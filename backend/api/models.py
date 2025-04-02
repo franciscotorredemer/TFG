@@ -1,7 +1,6 @@
-
 from django.db import models
 from django.contrib.auth.models import AbstractUser
-
+from datetime import date
 
 class Actividad(models.Model):
     nombre = models.CharField(max_length=255)
@@ -9,16 +8,30 @@ class Actividad(models.Model):
     url_imagen = models.URLField()
     ciudad = models.CharField(max_length=255)
     ubicacion = models.CharField(max_length=255)
+    fecha_realizacion = models.DateField(default=date.today)
 
     def __str__(self):
-        return self.nombre
+        return f"{self.nombre} - {self.fecha_realizacion}"
 
 class CustomUser(AbstractUser):
     """
     Utilizamos AbstractUser para extender el modelo de usuario de Django
     """
-    email = models.EmailField(unique=True)  # El email del usuario sera unico
+    email = models.EmailField(unique=True)  # El email del usuario será único
     foto_perfil = models.ImageField(upload_to="perfil/", blank=True, null=True)  # Foto de usuario opcionalmente
 
     def __str__(self):
         return self.username  # Retorna el nombre de usuario
+
+class Viaje(models.Model):
+    nombre = models.CharField(max_length=255)
+    ciudad = models.CharField(max_length=255)
+    hotel = models.CharField(max_length=255, blank=True, null=True)
+    fecha_inicio = models.DateField(default=date.today)
+    fecha_fin = models.DateField(default=date.today)
+    usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="viajes")
+    actividades = models.ManyToManyField(Actividad, related_name="viajes")
+    imagen_destacada = models.URLField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.nombre} - {self.ciudad}"
