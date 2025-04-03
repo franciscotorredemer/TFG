@@ -1,6 +1,6 @@
 
 from rest_framework import serializers
-from .models import Actividad, CustomUser, Viaje
+from .models import Actividad, CustomUser, Viaje, Hotel
 
 class ActividadSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,6 +30,15 @@ class ViajeSerializer(serializers.ModelSerializer):
             viaje.actividades.add(actividad)  # Relacionar la actividad con el viaje
 
         return viaje
+    
+class HotelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hotel
+        fields = '__all__'
+
+    
+
+
 
 
 

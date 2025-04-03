@@ -1,18 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { 
-  View, 
-  Text, 
-  Image, 
-  TouchableOpacity, 
-  StyleSheet, 
-  ScrollView, 
-  ActivityIndicator 
-} from "react-native";
-import { NavigationProp } from "@react-navigation/native";
+import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
-import MenuInferior from "../components/MenuInferior";
-import { FontAwesome } from "@expo/vector-icons";
+import { NavigationProp } from "@react-navigation/native";
 
 interface Viaje {
   id: number;
@@ -20,124 +10,110 @@ interface Viaje {
   ciudad: string;
   fecha_inicio: string;
   fecha_fin: string;
-  actividades: any[];
   imagen_destacada: string;
 }
 
-interface PropsMisViajes {
+interface Props {
   navigation: NavigationProp<any>;
 }
 
-const MisViajes: React.FC<PropsMisViajes> = ({ navigation }) => {
+const MisViajes: React.FC<Props> = ({ navigation }) => {
   const [viajes, setViajes] = useState<Viaje[]>([]);
-  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    const obtenerViajes = async () => {
+    const fetchViajes = async () => {
       try {
         const token = await AsyncStorage.getItem("access_token");
-        const respuesta = await api.get("viajes/", {
-          headers: { Authorization: `Bearer ${token}` }
+        const response = await api.get("mis_viajes/", {
+          headers: { Authorization: `Bearer ${token}` },
         });
-        setViajes(respuesta.data);
+        setViajes(response.data);
       } catch (error) {
-        console.error("Error al cargar los viajes:", error);
-      } finally {
-        setCargando(false);
+        Alert.alert("Error", "No se pudieron cargar los viajes.");
       }
     };
 
-    obtenerViajes();
+    fetchViajes();
   }, []);
 
+  const renderItem = ({ item }: { item: Viaje }) => (
+    <TouchableOpacity
+      onPress={() => {
+        console.log("CLICK EN VIAJE", item.id); // DEBUG
+        navigation.navigate("DetalleViaje", { viajeId: item.id });
+      }}
+      style={estilos.bloqueViaje}
+      activeOpacity={0.8}
+    >
+      <Image source={{ uri: item.imagen_destacada }} style={estilos.imagenViaje} />
+      <View style={estilos.detallesViaje}>
+        <Text style={estilos.titulo}>{item.nombre}</Text>
+        <Text style={estilos.fechas}>
+          {new Date(item.fecha_inicio).toLocaleDateString()} -{" "}
+          {new Date(item.fecha_fin).toLocaleDateString()}
+        </Text>
+        <Text style={estilos.ciudad}>{item.ciudad}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
-    <View style={estilos.pantalla}>
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* Encabezado */}
-        <View style={estilos.encabezado}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <FontAwesome name="arrow-left" size={24} color="black" />
-          </TouchableOpacity>
-          <Text style={estilos.titulo}>Todos mis viajes</Text>
-          <View style={{ width: 24 }} /> {/* Dejamos espacio */}
-        </View>
-
-        {/* Pantalla de carga */}
-        {cargando ? (
-          <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 50 }} />
-        ) : (
-          viajes.map((viaje) => (
-            <View key={viaje.id} style={estilos.bloqueViaje}>
-              <Image source={{ uri: viaje.imagen_destacada }} style={estilos.imagenViaje} />
-              <View style={estilos.infoViaje}>
-                <Text style={estilos.nombreViaje}>{viaje.nombre}</Text>
-                <Text style={estilos.textoFechas}>
-                  {new Date(viaje.fecha_inicio).toLocaleDateString()} - {new Date(viaje.fecha_fin).toLocaleDateString()}
-                </Text>
-                <Text style={estilos.textoActividades}>{viaje.actividades.length} actividades</Text>
-              </View>
-            </View>
-          ))
-        )}
-
-        {/* Espacio al final */}
-        <View style={{ height: 80 }} />
-      </ScrollView>
-
-      <MenuInferior navigation={navigation} />
+    <View style={estilos.container}>
+      <Text style={estilos.header}>Mis Viajes</Text>
+      <FlatList
+        data={viajes}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={estilos.lista}
+      />
     </View>
   );
 };
 
 const estilos = StyleSheet.create({
-  pantalla: {
+  container: {
     flex: 1,
     backgroundColor: "#fff",
+    paddingHorizontal: 10,
     paddingTop: 50,
   },
-  encabezado: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginBottom: 10,
-  },
-  titulo: {
-    fontSize: 22,
+  header: {
+    fontSize: 28,
     fontWeight: "bold",
+    color: "#347CAF",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  lista: {
+    paddingBottom: 20,
   },
   bloqueViaje: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 20,
-    marginTop: 15,
-    borderRadius: 10,
+    marginBottom: 20,
+    backgroundColor: "#f2f2f2",
+    borderRadius: 12,
     overflow: "hidden",
-    backgroundColor: "#f8f8f8",
-    padding: 10,
+    elevation: 2,
   },
   imagenViaje: {
-    width: 120,
-    height: 80,
-    borderRadius: 10,
+    width: "100%",
+    height: 180,
   },
-  infoViaje: {
-    flex: 1,
-    paddingLeft: 15,
+  detallesViaje: {
+    padding: 10,
   },
-  nombreViaje: {
-    fontSize: 16,
+  titulo: {
+    fontSize: 20,
     fontWeight: "bold",
+    marginBottom: 5,
   },
-  textoFechas: {
+  fechas: {
     fontSize: 14,
     color: "gray",
-    marginTop: 3,
+    marginBottom: 3,
   },
-  textoActividades: {
+  ciudad: {
     fontSize: 14,
-    color: "gray",
-    marginTop: 2,
+    color: "#347CAF",
   },
 });
 

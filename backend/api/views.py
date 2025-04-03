@@ -1,6 +1,6 @@
 from rest_framework import viewsets, generics
-from .models import Actividad, CustomUser, Viaje
-from .serializers import ActividadSerializer, CustomUserSerializer, ViajeSerializer
+from .models import Actividad, CustomUser, Viaje, Hotel
+from .serializers import ActividadSerializer, CustomUserSerializer, ViajeSerializer, HotelSerializer
 from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
@@ -69,6 +69,21 @@ def mis_viajes(request):
     viajes = Viaje.objects.filter(usuario=request.user).order_by('-fecha_inicio')[:2]
     serializer = ViajeSerializer(viajes, many=True)
     return Response(serializer.data)
+
+
+class HotelViewSet(viewsets.ModelViewSet):
+    queryset = Hotel.objects.all() 
+    serializer_class = HotelSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = Hotel.objects.filter(viaje__usuario=self.request.user)
+        viaje_id = self.request.query_params.get('viaje')
+        if viaje_id:
+            queryset = queryset.filter(viaje__id=viaje_id)
+        return queryset
+
+
 
     
 

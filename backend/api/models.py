@@ -35,3 +35,17 @@ class Viaje(models.Model):
 
     def __str__(self):
         return f"{self.nombre} - {self.ciudad}"
+    
+
+class Hotel(models.Model):
+    nombre = models.CharField(max_length=255)
+    descripcion = models.TextField()
+    ciudad = models.CharField(max_length=255)
+    pais = models.CharField(max_length=255)
+    ubicacion = models.CharField(max_length=255)
+    imagen = models.URLField()
+    viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="hoteles")
+
+    def __str__(self):
+        return f"{self.nombre} ({self.ciudad}, {self.pais})"
+
