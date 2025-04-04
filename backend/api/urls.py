@@ -4,12 +4,14 @@ from rest_framework.routers import DefaultRouter
 from .views import ActividadViewSet, RegistroViewSet, obtener_perfil, mis_viajes, obtener_perfil, ViajeViewSet
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import HotelViewSet
+from .views import ActividadEnViajeViewSet
 
 # Configurar el router para gestionar las URLs de la API
 router = DefaultRouter()
 router.register(r'actividades', ActividadViewSet)
 router.register(r'viajes', ViajeViewSet)
 router.register(r'hoteles', HotelViewSet) 
+router.register(r'actividades_en_viaje', ActividadEnViajeViewSet)
 
 
 # Incluir las URLs del router

@@ -8,7 +8,7 @@ class Actividad(models.Model):
     url_imagen = models.URLField()
     ciudad = models.CharField(max_length=255)
     ubicacion = models.CharField(max_length=255)
-    fecha_realizacion = models.DateField(default=date.today)
+    
 
     def __str__(self):
         return f"{self.nombre} - {self.fecha_realizacion}"
@@ -30,11 +30,20 @@ class Viaje(models.Model):
     fecha_inicio = models.DateField(default=date.today)
     fecha_fin = models.DateField(default=date.today)
     usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="viajes")
-    actividades = models.ManyToManyField(Actividad, related_name="viajes")
+    actividades = models.ManyToManyField(Actividad, through='ActividadEnViaje', related_name="viajes")
     imagen_destacada = models.URLField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.nombre} - {self.ciudad}"
+
+class ActividadEnViaje(models.Model):
+    viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE)
+    actividad = models.ForeignKey(Actividad, on_delete=models.CASCADE)
+    fecha_realizacion = models.DateField()
+
+    def __str__(self):
+        return f"{self.actividad.nombre} en {self.viaje.nombre} el {self.fecha_realizacion}"
+
     
 
 class Hotel(models.Model):

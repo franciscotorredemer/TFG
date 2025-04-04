@@ -1,6 +1,6 @@
 from rest_framework import viewsets, generics
-from .models import Actividad, CustomUser, Viaje, Hotel
-from .serializers import ActividadSerializer, CustomUserSerializer, ViajeSerializer, HotelSerializer
+from .models import Actividad, CustomUser, Viaje, Hotel, ActividadEnViaje
+from .serializers import ActividadSerializer, CustomUserSerializer, ViajeSerializer, HotelSerializer, ActividadEnViajeSerializer
 from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes
@@ -82,6 +82,12 @@ class HotelViewSet(viewsets.ModelViewSet):
         if viaje_id:
             queryset = queryset.filter(viaje__id=viaje_id)
         return queryset
+    
+
+class ActividadEnViajeViewSet(viewsets.ModelViewSet):
+    queryset = ActividadEnViaje.objects.all()
+    serializer_class = ActividadEnViajeSerializer
+    permission_classes = [IsAuthenticated]
 
 
 
