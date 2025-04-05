@@ -1,16 +1,18 @@
 from rest_framework import serializers
 from .models import Actividad, CustomUser, Viaje, Hotel, ActividadEnViaje
 
+
 class ActividadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actividad
         fields = '__all__'
 
+
 class CustomUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'password', 'foto_perfil'] 
-        extra_kwargs = {'password': {'write_only': True}}  # La contraseña no se muestra en la respuesta  
+        fields = ['username', 'email', 'password', 'foto_perfil']
+        extra_kwargs = {'password': {'write_only': True}}
 
 
 class ActividadConFechaSerializer(serializers.ModelSerializer):
@@ -25,21 +27,35 @@ class ActividadConFechaSerializer(serializers.ModelSerializer):
         model = ActividadEnViaje
         fields = ['id', 'nombre', 'descripcion', 'url_imagen', 'ciudad', 'ubicacion', 'fecha_realizacion']
 
-class ViajeSerializer(serializers.ModelSerializer):
-    actividades = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Viaje
-        fields = ['id', 'nombre', 'ciudad', 'hotel', 'fecha_inicio', 'fecha_fin', 'imagen_destacada', 'actividades']
-
-    def get_actividades(self, obj):
-        relaciones = ActividadEnViaje.objects.filter(viaje=obj)
-        return ActividadConFechaSerializer(relaciones, many=True).data
 
 class HotelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hotel
         fields = '__all__'
+
+
+class ViajeSerializer(serializers.ModelSerializer):
+    actividades = serializers.SerializerMethodField()
+    hoteles = HotelSerializer(many=True, read_only=True)  # ← Añadido aquí
+
+    class Meta:
+        model = Viaje
+        fields = [
+            'id',
+            'nombre',
+            'ciudad',
+            'hotel',
+            'fecha_inicio',
+            'fecha_fin',
+            'imagen_destacada',
+            'actividades',
+            'hoteles',  # ← Añadido aquí
+        ]
+
+    def get_actividades(self, obj):
+        relaciones = ActividadEnViaje.objects.filter(viaje=obj)
+        return ActividadConFechaSerializer(relaciones, many=True).data
+
 
 class ActividadEnViajeSerializer(serializers.ModelSerializer):
     class Meta:
