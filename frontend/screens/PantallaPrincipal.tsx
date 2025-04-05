@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { 
-  View, 
-  Text, 
-  Image, 
-  TouchableOpacity, 
-  StyleSheet, 
-  TextInput, 
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  StyleSheet,
+  TextInput,
   ScrollView,
 } from "react-native";
 import { NavigationProp } from "@react-navigation/native";
@@ -40,7 +40,7 @@ const PantallaPrincipal: React.FC<PantallaPrincipalProps> = ({ navigation }) => 
       try {
         const token = await AsyncStorage.getItem("access_token");
         const respuesta = await api.get("mis_viajes/", {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         setViajes(respuesta.data);
       } catch (error) {
@@ -72,26 +72,34 @@ const PantallaPrincipal: React.FC<PantallaPrincipalProps> = ({ navigation }) => 
 
         {/* Lista de viajes */}
         {viajes.map((viaje) => (
-          <View key={viaje.id} style={estilos.bloqueViaje}>
+          <TouchableOpacity
+            key={viaje.id}
+            style={estilos.bloqueViaje}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate("DetalleViaje", { viajeId: viaje.id })}
+          >
             <Image source={{ uri: viaje.imagen_destacada }} style={estilos.imagenViaje} />
             <View style={estilos.infoViaje}>
               <Text style={estilos.nombreViaje}>{viaje.nombre}</Text>
               <Text style={estilos.textoFechas}>
-                {new Date(viaje.fecha_inicio).toLocaleDateString()} - {new Date(viaje.fecha_fin).toLocaleDateString()}
+                {new Date(viaje.fecha_inicio).toLocaleDateString()} -{" "}
+                {new Date(viaje.fecha_fin).toLocaleDateString()}
               </Text>
-              <Text style={estilos.textoActividades}>{viaje.actividades.length} actividades</Text>
+              <Text style={estilos.textoActividades}>
+                {viaje.actividades.length} actividades
+              </Text>
             </View>
-          </View>
+          </TouchableOpacity>
         ))}
 
         {/* Buscador */}
         <Text style={estilos.mensajeNuevoViaje}>¡Empieza un nuevo viaje!</Text>
         <View style={estilos.buscador}>
           <FontAwesome name="search" size={20} color="#007AFF" style={estilos.iconoBuscar} />
-          <TextInput 
-            style={estilos.entradaBusqueda} 
-            placeholder="Barcelona, París..." 
-            placeholderTextColor="#aaa" 
+          <TextInput
+            style={estilos.entradaBusqueda}
+            placeholder="Barcelona, París..."
+            placeholderTextColor="#aaa"
           />
         </View>
 
