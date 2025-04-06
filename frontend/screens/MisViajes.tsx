@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, StyleSheet, Image, TouchableOpacity, Alert } from "react-native";
+import { View, Text, FlatList, Alert, StyleSheet } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
 import { NavigationProp } from "@react-navigation/native";
+import TarjetaViaje from "../components/TarjetaViaje";
 
 interface Viaje {
   id: number;
@@ -20,61 +21,63 @@ interface Props {
 const MisViajes: React.FC<Props> = ({ navigation }) => {
   const [viajes, setViajes] = useState<Viaje[]>([]);
 
-  useEffect(() => {
-    const fetchViajes = async () => {
-      try {
-        const token = await AsyncStorage.getItem("access_token");
-        const response = await api.get("mis_viajes/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setViajes(response.data);
-      } catch (error) {
-        Alert.alert("Error", "No se pudieron cargar los viajes.");
-      }
-    };
+  const fetchViajes = async () => {
+    try {
+      const token = await AsyncStorage.getItem("access_token");
+      const response = await api.get("mis_viajes/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setViajes(response.data);
+    } catch (error) {
+      Alert.alert("Error", "No se pudieron cargar los viajes.");
+    }
+  };
 
+  const eliminarViaje = async (viajeId: number) => {
+    try {
+      const token = await AsyncStorage.getItem("access_token");
+      await api.delete(`viajes/${viajeId}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setViajes((prev) => prev.filter((v) => v.id !== viajeId));
+    } catch (error) {
+      Alert.alert("Error", "No se pudo eliminar el viaje.");
+    }
+  };
+
+  useEffect(() => {
     fetchViajes();
   }, []);
 
   const renderItem = ({ item }: { item: Viaje }) => (
-    <TouchableOpacity
-      onPress={() => {
-        console.log("CLICK EN VIAJE", item.id); // DEBUG
-        navigation.navigate("DetalleViaje", { viajeId: item.id });
-      }}
-      style={estilos.bloqueViaje}
-      activeOpacity={0.8}
-    >
-      <Image source={{ uri: item.imagen_destacada }} style={estilos.imagenViaje} />
-      <View style={estilos.detallesViaje}>
-        <Text style={estilos.titulo}>{item.nombre}</Text>
-        <Text style={estilos.fechas}>
-          {new Date(item.fecha_inicio).toLocaleDateString()} -{" "}
-          {new Date(item.fecha_fin).toLocaleDateString()}
-        </Text>
-        <Text style={estilos.ciudad}>{item.ciudad}</Text>
-      </View>
-    </TouchableOpacity>
+    <TarjetaViaje
+      nombre={item.nombre}
+      ciudad={item.ciudad}
+      fecha_inicio={item.fecha_inicio}
+      fecha_fin={item.fecha_fin}
+      imagen_destacada={item.imagen_destacada}
+      onPress={() => navigation.navigate("DetalleViaje", { viajeId: item.id })}
+      onDelete={() => eliminarViaje(item.id)}
+    />
   );
 
   return (
-    <View style={estilos.container}>
-      <Text style={estilos.header}>Mis Viajes</Text>
+    <View style={styles.container}>
+      <Text style={styles.header}>Mis Viajes</Text>
       <FlatList
         data={viajes}
         keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
-        contentContainerStyle={estilos.lista}
+        contentContainerStyle={styles.lista}
       />
     </View>
   );
 };
 
-const estilos = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    paddingHorizontal: 10,
     paddingTop: 50,
   },
   header: {
@@ -86,34 +89,6 @@ const estilos = StyleSheet.create({
   },
   lista: {
     paddingBottom: 20,
-  },
-  bloqueViaje: {
-    marginBottom: 20,
-    backgroundColor: "#f2f2f2",
-    borderRadius: 12,
-    overflow: "hidden",
-    elevation: 2,
-  },
-  imagenViaje: {
-    width: "100%",
-    height: 180,
-  },
-  detallesViaje: {
-    padding: 10,
-  },
-  titulo: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  fechas: {
-    fontSize: 14,
-    color: "gray",
-    marginBottom: 3,
-  },
-  ciudad: {
-    fontSize: 14,
-    color: "#347CAF",
   },
 });
 

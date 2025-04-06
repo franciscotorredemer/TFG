@@ -6,11 +6,13 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
 import { StackScreenProps } from "@react-navigation/stack";
 import { RootStackParamList } from "../App";
+import { FontAwesome } from "@expo/vector-icons";
 
 type Props = StackScreenProps<RootStackParamList, "DetalleViaje">;
 
@@ -19,18 +21,44 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
   const [viaje, setViaje] = useState<any>(null);
   const { viajeId } = route.params;
 
+  const cargarDatos = async () => {
+    const token = await AsyncStorage.getItem("access_token");
+    const respuestaViaje = await api.get(`viajes/${viajeId}/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setViaje(respuestaViaje.data);
+  };
+
   useEffect(() => {
-    const cargarDatos = async () => {
-      const token = await AsyncStorage.getItem("access_token");
-
-      const respuestaViaje = await api.get(`viajes/${viajeId}/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      setViaje(respuestaViaje.data);
-    };
-
     cargarDatos();
   }, [viajeId]);
+
+  const confirmarEliminacion = (tipo: "hotel" | "actividad", id: number) => {
+    Alert.alert(
+      `¿Eliminar ${tipo}?`,
+      "Esta acción no se puede deshacer.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: () => eliminarElemento(tipo, id),
+        },
+      ]
+    );
+  };
+
+  const eliminarElemento = async (tipo: "hotel" | "actividad", id: number) => {
+    const token = await AsyncStorage.getItem("access_token");
+    try {
+      await api.delete(`${tipo === "hotel" ? "hoteles" : "actividades_en_viaje"}/${id}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      cargarDatos(); // recargar viaje actualizado
+    } catch (error) {
+      Alert.alert("Error", "No se pudo eliminar.");
+    }
+  };
 
   const renderizarContenido = () => {
     if (pestana === "descripcion") {
@@ -48,6 +76,9 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                   <Text style={estilos.cardTexto}>{hotel.descripcion}</Text>
                   <Text style={estilos.cardTexto}>{hotel.ciudad}, {hotel.pais}</Text>
                 </View>
+                <TouchableOpacity onPress={() => confirmarEliminacion("hotel", hotel.id)}>
+                  <FontAwesome name="trash" size={20} color="red" />
+                </TouchableOpacity>
               </View>
             ))
           )}
@@ -57,22 +88,22 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
 
     if (pestana === "itinerario") {
       if (!viaje) return null;
-    
+
       const inicio = new Date(viaje.fecha_inicio);
       const fin = new Date(viaje.fecha_fin);
       const dias: string[] = [];
-    
+
       for (let d = new Date(inicio); d <= fin; d.setDate(d.getDate() + 1)) {
         dias.push(new Date(d).toISOString().split("T")[0]);
       }
-    
+
       const fechaFormateada = (fecha: string) =>
         new Date(fecha).toLocaleDateString("es-ES", {
           day: "numeric",
           month: "long",
           year: "numeric",
         });
-    
+
       return (
         <View>
           {dias.map((fecha: string, i: number) => {
@@ -94,6 +125,9 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                         <Text style={estilos.cardTexto}>{actividad.ubicacion}</Text>
                         <Text style={estilos.mapa}>Marcar en mapa</Text>
                       </View>
+                      <TouchableOpacity onPress={() => confirmarEliminacion("actividad", actividad.id)}>
+                        <FontAwesome name="trash" size={20} color="red" />
+                      </TouchableOpacity>
                     </View>
                   ))
                 )}
@@ -103,7 +137,6 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
         </View>
       );
     }
-    
 
     return <Text style={estilos.textoInfo}>Sección de gastos (pendiente)</Text>;
   };
