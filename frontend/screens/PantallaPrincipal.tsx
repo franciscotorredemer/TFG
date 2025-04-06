@@ -7,12 +7,14 @@ import {
   StyleSheet,
   TextInput,
   ScrollView,
+  Alert,
 } from "react-native";
 import { NavigationProp } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
 import MenuInferior from "../components/MenuInferior";
 import { FontAwesome } from "@expo/vector-icons";
+import TarjetaViaje from "../components/TarjetaViaje"; // Asegúrate de tenerlo
 
 // Imágenes
 const logo = require("../assets/imagenes/logo.png");
@@ -35,21 +37,33 @@ interface PantallaPrincipalProps {
 const PantallaPrincipal: React.FC<PantallaPrincipalProps> = ({ navigation }) => {
   const [viajes, setViajes] = useState<Viaje[]>([]);
 
-  useEffect(() => {
-    const cargarViajes = async () => {
-      try {
-        const token = await AsyncStorage.getItem("access_token");
-        const respuesta = await api.get("mis_viajes/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setViajes(respuesta.data);
-      } catch (error) {
-        console.error("Error al cargar los viajes:", error);
-      }
-    };
+  const cargarViajes = async () => {
+    try {
+      const token = await AsyncStorage.getItem("access_token");
+      const respuesta = await api.get("mis_viajes/", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setViajes(respuesta.data);
+    } catch (error) {
+      console.error("Error al cargar los viajes:", error);
+    }
+  };
 
+  useEffect(() => {
     cargarViajes();
   }, []);
+
+  const handleDelete = async (id: number) => {
+    try {
+      const token = await AsyncStorage.getItem("access_token");
+      await api.delete(`viajes/${id}/`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setViajes((prev) => prev.filter((viaje) => viaje.id !== id));
+    } catch (error) {
+      Alert.alert("Error", "No se pudo eliminar el viaje.");
+    }
+  };
 
   return (
     <View style={estilos.pantalla}>
@@ -72,24 +86,17 @@ const PantallaPrincipal: React.FC<PantallaPrincipalProps> = ({ navigation }) => 
 
         {/* Lista de viajes */}
         {viajes.map((viaje) => (
-          <TouchableOpacity
+          <TarjetaViaje
             key={viaje.id}
-            style={estilos.bloqueViaje}
-            activeOpacity={0.8}
+            nombre={viaje.nombre}
+            ciudad={viaje.ciudad}
+            fecha_inicio={viaje.fecha_inicio}
+            fecha_fin={viaje.fecha_fin}
+            imagen_destacada={viaje.imagen_destacada}
+            actividades={viaje.actividades.length}
             onPress={() => navigation.navigate("DetalleViaje", { viajeId: viaje.id })}
-          >
-            <Image source={{ uri: viaje.imagen_destacada }} style={estilos.imagenViaje} />
-            <View style={estilos.infoViaje}>
-              <Text style={estilos.nombreViaje}>{viaje.nombre}</Text>
-              <Text style={estilos.textoFechas}>
-                {new Date(viaje.fecha_inicio).toLocaleDateString()} -{" "}
-                {new Date(viaje.fecha_fin).toLocaleDateString()}
-              </Text>
-              <Text style={estilos.textoActividades}>
-                {viaje.actividades.length} actividades
-              </Text>
-            </View>
-          </TouchableOpacity>
+            onDelete={() => handleDelete(viaje.id)}
+          />
         ))}
 
         {/* Buscador */}
@@ -148,39 +155,6 @@ const estilos = StyleSheet.create({
   botonVerTodo: {
     fontSize: 16,
     color: "#007AFF",
-  },
-  bloqueViaje: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginHorizontal: 20,
-    marginTop: 15,
-    borderRadius: 10,
-    overflow: "hidden",
-    backgroundColor: "#f8f8f8",
-    padding: 10,
-  },
-  imagenViaje: {
-    width: 120,
-    height: 80,
-    borderRadius: 10,
-  },
-  infoViaje: {
-    flex: 1,
-    paddingLeft: 15,
-  },
-  nombreViaje: {
-    fontSize: 16,
-    fontWeight: "bold",
-  },
-  textoFechas: {
-    fontSize: 14,
-    color: "gray",
-    marginTop: 3,
-  },
-  textoActividades: {
-    fontSize: 14,
-    color: "gray",
-    marginTop: 2,
   },
   mensajeNuevoViaje: {
     fontSize: 18,
