@@ -5,18 +5,14 @@ import { createStackNavigator } from "@react-navigation/stack";
 import PantallaInicio from "./screens/PantallaInicio";
 import PantallaLogin from "./screens/PantallaLogin";
 import PantallaRegistro from "./screens/PantallaRegistro";
-import ActivityScreen from "./screens/ActivityScreen";
-import PantallaPrincipal from "./screens/PantallaPrincipal";
-import MisViajes from "./screens/MisViajes";
 import PantallaDetalleViaje from "./screens/PantallaDetalleViaje";
+import NavegacionTabs from "./navigation/NavegacionTabs"; 
 
-// Definición de los tipos de parámetros para la navegación
 export type RootStackParamList = {
   Inicio: undefined;
   Login: undefined;
   Registro: undefined;
-  Activities: undefined;
-  MisViajes: undefined;
+  Tabs: undefined;
   DetalleViaje: { viajeId: number };
 };
 
@@ -29,8 +25,7 @@ const App: React.FC = () => {
         <Stack.Screen name="Inicio" component={PantallaInicio} />
         <Stack.Screen name="Login" component={PantallaLogin} />
         <Stack.Screen name="Registro" component={PantallaRegistro} />
-        <Stack.Screen name="Activities" component={PantallaPrincipal} />
-        <Stack.Screen name="MisViajes" component={MisViajes} />
+        <Stack.Screen name="Tabs" component={NavegacionTabs} />
         <Stack.Screen name="DetalleViaje" component={PantallaDetalleViaje} />
       </Stack.Navigator>
     </NavigationContainer>
