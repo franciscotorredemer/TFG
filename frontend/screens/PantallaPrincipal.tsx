@@ -12,7 +12,7 @@ import {
 import { NavigationProp } from "@react-navigation/native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
-import MenuInferior from "../components/MenuInferior";
+
 import { FontAwesome } from "@expo/vector-icons";
 import TarjetaViaje from "../components/TarjetaViaje"; // Asegúrate de tenerlo
 
@@ -114,8 +114,7 @@ const PantallaPrincipal: React.FC<PantallaPrincipalProps> = ({ navigation }) => 
         <View style={{ height: 80 }} />
       </ScrollView>
 
-      {/* Menú inferior */}
-      <MenuInferior navigation={navigation} />
+      
     </View>
   );
 };

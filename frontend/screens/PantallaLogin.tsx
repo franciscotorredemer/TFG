@@ -45,7 +45,7 @@ const PantallaLogin: React.FC<PantallaLoginProps> = ({ navigation }) => {
       await AsyncStorage.setItem("refresh_token", refresh);
 
       Alert.alert("Login exitoso", "Has iniciado sesión correctamente");
-      navigation.navigate("Activities");
+      navigation.navigate("Tabs");
     } catch (error) {
       Alert.alert("Error", "Credenciales incorrectas o problema con el servidor");
     }
