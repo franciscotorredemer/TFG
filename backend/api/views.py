@@ -32,8 +32,12 @@ def obtener_perfil(request):
         return Response(serializer.data)
     
     # Con PUT actualizamos la información del usuario
-    elif request.method == 'PUT':
-        serializer = CustomUserSerializer(usuario, data=request.data, partial=True) #Ponemos partial para permitir cambiar solo algunos campos
+    elif request.method == "PUT":
+        data = request.data.copy()
+        if "password" in data and data["password"]:
+            data["password"] = make_password(data["password"])
+
+        serializer = CustomUserSerializer(usuario, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)

@@ -6,7 +6,8 @@ import PantallaInicio from "./screens/PantallaInicio";
 import PantallaLogin from "./screens/PantallaLogin";
 import PantallaRegistro from "./screens/PantallaRegistro";
 import PantallaDetalleViaje from "./screens/PantallaDetalleViaje";
-import NavegacionTabs from "./navigation/NavegacionTabs"; 
+import NavegacionTabs from "./navigation/NavegacionTabs";
+import PantallaEditarPerfil from "./screens/PantallaEditarPerfil"; 
 
 export type RootStackParamList = {
   Inicio: undefined;
@@ -14,6 +15,7 @@ export type RootStackParamList = {
   Registro: undefined;
   Tabs: undefined;
   DetalleViaje: { viajeId: number };
+  EditarPerfil: undefined; 
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -27,6 +29,7 @@ const App: React.FC = () => {
         <Stack.Screen name="Registro" component={PantallaRegistro} />
         <Stack.Screen name="Tabs" component={NavegacionTabs} />
         <Stack.Screen name="DetalleViaje" component={PantallaDetalleViaje} />
+        <Stack.Screen name="EditarPerfil" component={PantallaEditarPerfil} /> 
       </Stack.Navigator>
     </NavigationContainer>
   );
