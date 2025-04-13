@@ -8,7 +8,9 @@ import PantallaRegistro from "./screens/PantallaRegistro";
 import PantallaDetalleViaje from "./screens/PantallaDetalleViaje";
 import NavegacionTabs from "./navigation/NavegacionTabs";
 import PantallaEditarPerfil from "./screens/PantallaEditarPerfil";
-import PantallaDetalleActividad from "./screens/PantallaDetalleActividad"; 
+import PantallaDetalleActividad from "./screens/PantallaDetalleActividad";
+import MisViajes from "./screens/MisViajes";
+import PantallaPerfil from "./screens/PantallaPerfil";
 
 export type RootStackParamList = {
   Inicio: undefined;
@@ -17,7 +19,9 @@ export type RootStackParamList = {
   Tabs: undefined;
   DetalleViaje: { viajeId: number };
   EditarPerfil: undefined;
-  DetalleActividad: { actividad: any }; 
+  DetalleActividad: { actividad: any; viajeId?: number };
+  MisViajes: undefined;
+  Perfil: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -29,10 +33,12 @@ const App: React.FC = () => {
         <Stack.Screen name="Inicio" component={PantallaInicio} />
         <Stack.Screen name="Login" component={PantallaLogin} />
         <Stack.Screen name="Registro" component={PantallaRegistro} />
-        <Stack.Screen name="Tabs" component={NavegacionTabs} />
+        <Stack.Screen name="Tabs" component={NavegacionTabs} options={{ gestureEnabled: false }} />
         <Stack.Screen name="DetalleViaje" component={PantallaDetalleViaje} />
         <Stack.Screen name="EditarPerfil" component={PantallaEditarPerfil} />
-        <Stack.Screen name="DetalleActividad" component={PantallaDetalleActividad} /> 
+        <Stack.Screen name="DetalleActividad" component={PantallaDetalleActividad} />
+        <Stack.Screen name="MisViajes" component={MisViajes} />
+        <Stack.Screen name="Perfil" component={PantallaPerfil} />
       </Stack.Navigator>
     </NavigationContainer>
   );

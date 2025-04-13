@@ -7,6 +7,7 @@ import {
   StyleSheet,
   Alert,
   ScrollView,
+  Platform
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
@@ -61,7 +62,11 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView contentContainerStyle={[styles.container, { paddingTop: Platform.OS === "ios" ? 50 : 20 }]}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.botonAtras}>
+        <Text style={styles.textoAtras}>←</Text>
+      </TouchableOpacity>
+
       <Text style={styles.titulo}>Editar perfil</Text>
 
       <Text style={styles.label}>Nombre de usuario</Text>
@@ -102,6 +107,14 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#fff",
     flexGrow: 1,
+  },
+  botonAtras: {
+    marginBottom: 10,
+  },
+  textoAtras: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#347CAF",
   },
   titulo: {
     fontSize: 24,
