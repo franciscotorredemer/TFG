@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -8,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Platform
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
@@ -55,7 +55,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
       await api.delete(`${tipo === "hotel" ? "hoteles" : "actividades_en_viaje"}/${id}/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      cargarDatos(); // recargar viaje actualizado
+      cargarDatos();
     } catch (error) {
       Alert.alert("Error", "No se pudo eliminar.");
     }
@@ -149,42 +149,44 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
   if (!viaje) return <Text style={estilos.textoInfo}>Cargando...</Text>;
 
   return (
-    <ScrollView style={estilos.contenedor}>
-      <View style={estilos.encabezado}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={estilos.atras}>←</Text>
-        </TouchableOpacity>
-        <View>
-          <Text style={estilos.nombreViaje}>{viaje.nombre}</Text>
-          <Text>
-            {new Date(viaje.fecha_inicio).toLocaleDateString()} -{" "}
-            {new Date(viaje.fecha_fin).toLocaleDateString()}
-          </Text>
+    <View style={[estilos.contenedor, { paddingTop: Platform.OS === "ios" ? 50 : 0 }]}>
+      <ScrollView>
+        <View style={estilos.encabezado}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={estilos.atras}>←</Text>
+          </TouchableOpacity>
+          <View>
+            <Text style={estilos.nombreViaje}>{viaje.nombre}</Text>
+            <Text>
+              {new Date(viaje.fecha_inicio).toLocaleDateString()} -{" "}
+              {new Date(viaje.fecha_fin).toLocaleDateString()}
+            </Text>
+          </View>
+          <Image source={require("../assets/imagenes/user.png")} style={estilos.fotoPerfil} />
         </View>
-        <Image source={require("../assets/imagenes/user.png")} style={estilos.fotoPerfil} />
-      </View>
 
-      <Image source={{ uri: viaje.imagen_destacada }} style={estilos.imagenViaje} />
+        <Image source={{ uri: viaje.imagen_destacada }} style={estilos.imagenViaje} />
 
-      <View style={estilos.pestanas}>
-        <TouchableOpacity onPress={() => setPestana("descripcion")}>
-          <Text style={pestana === "descripcion" ? estilos.pestanaActiva : estilos.pestana}>Descripción</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setPestana("itinerario")}>
-          <Text style={pestana === "itinerario" ? estilos.pestanaActiva : estilos.pestana}>Itinerario</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={() => setPestana("gastos")}>
-          <Text style={pestana === "gastos" ? estilos.pestanaActiva : estilos.pestana}>Gastos</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={estilos.pestanas}>
+          <TouchableOpacity onPress={() => setPestana("descripcion")}>
+            <Text style={pestana === "descripcion" ? estilos.pestanaActiva : estilos.pestana}>Descripción</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setPestana("itinerario")}>
+            <Text style={pestana === "itinerario" ? estilos.pestanaActiva : estilos.pestana}>Itinerario</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setPestana("gastos")}>
+            <Text style={pestana === "gastos" ? estilos.pestanaActiva : estilos.pestana}>Gastos</Text>
+          </TouchableOpacity>
+        </View>
 
-      {renderizarContenido()}
-    </ScrollView>
+        {renderizarContenido()}
+      </ScrollView>
+    </View>
   );
 };
 
 const estilos = StyleSheet.create({
-  contenedor: { backgroundColor: "#fff" },
+  contenedor: { backgroundColor: "#fff", flex: 1 },
   encabezado: {
     flexDirection: "row",
     justifyContent: "space-between",

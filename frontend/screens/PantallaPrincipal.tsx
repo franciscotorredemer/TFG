@@ -14,9 +14,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
 
 import { FontAwesome } from "@expo/vector-icons";
-import TarjetaViaje from "../components/TarjetaViaje"; // Asegúrate de tenerlo
+import TarjetaViaje from "../components/TarjetaViaje";
 
-// Imágenes
 const logo = require("../assets/imagenes/logo.png");
 const fotoPerfil = require("../assets/imagenes/user.png");
 
@@ -71,7 +70,7 @@ const PantallaPrincipal: React.FC<PantallaPrincipalProps> = ({ navigation }) => 
         {/* Encabezado */}
         <View style={estilos.encabezado}>
           <Image source={logo} style={estilos.logo} />
-          <TouchableOpacity onPress={() => navigation.navigate("Perfil")}>
+          <TouchableOpacity onPress={() => navigation.navigate("Perfil")} style={{ marginLeft: "auto", paddingRight: 20 }}>
             <Image source={fotoPerfil} style={estilos.fotoPerfil} />
           </TouchableOpacity>
         </View>
@@ -110,11 +109,8 @@ const PantallaPrincipal: React.FC<PantallaPrincipalProps> = ({ navigation }) => 
           />
         </View>
 
-        {/* Espacio para que no solape */}
         <View style={{ height: 80 }} />
       </ScrollView>
-
-      
     </View>
   );
 };
@@ -127,14 +123,13 @@ const estilos = StyleSheet.create({
   },
   encabezado: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
   },
   logo: {
     width: 180,
     height: 60,
     resizeMode: "contain",
+    marginLeft: 0,
   },
   fotoPerfil: {
     width: 50,

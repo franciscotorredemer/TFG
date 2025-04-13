@@ -64,7 +64,7 @@ const PantallaPerfil = ({ navigation }: any) => {
           style={styles.avatar}
         />
         <TouchableOpacity style={styles.cameraIcon}>
-          <Image source={cameraIcon} style={{ width: 24, height: 24 }} />
+          <Image source={cameraIcon} style={styles.cameraImage} />
         </TouchableOpacity>
       </View>
 
@@ -135,7 +135,8 @@ const styles = StyleSheet.create({
   cameraIcon: {
     position: "absolute",
     bottom: 0,
-    right: -5,
+    left: "55%",
+    transform: [{ translateX: -18 }],
     padding: 8,
     backgroundColor: "#00C4CC",
     width: 36,
@@ -150,6 +151,11 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 2,
+  },
+  cameraImage: {
+    width: 20,
+    height: 20,
+    tintColor: "#fff",
   },
   infoRow: {
     flexDirection: "row",

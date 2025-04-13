@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, Alert, StyleSheet } from "react-native";
+import { View, Text, FlatList, Alert, StyleSheet, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
 import { NavigationProp } from "@react-navigation/native";
@@ -63,6 +63,9 @@ const MisViajes: React.FC<Props> = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity onPress={() => navigation.goBack()} style={styles.botonAtras}>
+        <Text style={styles.textoAtras}>←</Text>
+      </TouchableOpacity>
       <Text style={styles.header}>Mis Viajes</Text>
       <FlatList
         data={viajes}
@@ -79,6 +82,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     paddingTop: 50,
+  },
+  botonAtras: {
+    marginLeft: 20,
+    marginBottom: 10,
+  },
+  textoAtras: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#347CAF",
   },
   header: {
     fontSize: 28,
