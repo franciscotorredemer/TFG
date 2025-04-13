@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import {
   View,
@@ -117,7 +118,11 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                   <Text style={estilos.textoInfo}>Nada programado</Text>
                 ) : (
                   actividadesDelDia.map((actividad: any) => (
-                    <View key={actividad.id} style={estilos.cardHorizontal}>
+                    <TouchableOpacity 
+                      key={actividad.id} 
+                      style={estilos.cardHorizontal}
+                      onPress={() => navigation.navigate("DetalleActividad", { actividad })}
+                    >
                       <Image source={{ uri: actividad.url_imagen }} style={estilos.cardImagen} />
                       <View style={{ flex: 1 }}>
                         <Text style={estilos.cardTitulo}>{actividad.nombre}</Text>
@@ -128,7 +133,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                       <TouchableOpacity onPress={() => confirmarEliminacion("actividad", actividad.id)}>
                         <FontAwesome name="trash" size={20} color="red" />
                       </TouchableOpacity>
-                    </View>
+                    </TouchableOpacity>
                   ))
                 )}
               </View>
@@ -179,67 +184,33 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
 };
 
 const estilos = StyleSheet.create({
-  contenedor: {
-    backgroundColor: "#fff",
-  },
+  contenedor: { backgroundColor: "#fff" },
   encabezado: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     padding: 15,
   },
-  atras: {
-    fontSize: 22,
-    fontWeight: "bold",
-  },
-  nombreViaje: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  fotoPerfil: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-  },
-  imagenViaje: {
-    width: "100%",
-    height: 200,
-  },
+  atras: { fontSize: 22, fontWeight: "bold" },
+  nombreViaje: { fontSize: 20, fontWeight: "bold" },
+  fotoPerfil: { width: 40, height: 40, borderRadius: 20 },
+  imagenViaje: { width: "100%", height: 200 },
   pestanas: {
     flexDirection: "row",
     justifyContent: "space-around",
     marginVertical: 15,
   },
-  pestana: {
-    fontSize: 16,
-    color: "gray",
-  },
+  pestana: { fontSize: 16, color: "gray" },
   pestanaActiva: {
     fontSize: 16,
     fontWeight: "bold",
     color: "#007AFF",
     textDecorationLine: "underline",
   },
-  subtitulo: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginHorizontal: 10,
-    marginTop: 10,
-  },
-  textoInfo: {
-    marginHorizontal: 10,
-    color: "gray",
-    fontStyle: "italic",
-  },
-  dia: {
-    marginBottom: 20,
-  },
-  fechaDia: {
-    marginLeft: 10,
-    fontWeight: "bold",
-    marginTop: 10,
-    fontSize: 16,
-  },
+  subtitulo: { fontSize: 18, fontWeight: "bold", marginHorizontal: 10, marginTop: 10 },
+  textoInfo: { marginHorizontal: 10, color: "gray", fontStyle: "italic" },
+  dia: { marginBottom: 20 },
+  fechaDia: { marginLeft: 10, fontWeight: "bold", marginTop: 10, fontSize: 16 },
   cardHorizontal: {
     flexDirection: "row",
     backgroundColor: "#f9f9f9",
@@ -250,25 +221,10 @@ const estilos = StyleSheet.create({
     padding: 10,
     alignItems: "center",
   },
-  cardImagen: {
-    width: 90,
-    height: 90,
-    borderRadius: 12,
-    marginRight: 10,
-  },
-  cardTitulo: {
-    fontWeight: "bold",
-    fontSize: 15,
-  },
-  cardTexto: {
-    color: "gray",
-    fontSize: 13,
-  },
-  mapa: {
-    color: "#00B2CA",
-    marginTop: 5,
-    fontWeight: "500",
-  },
+  cardImagen: { width: 90, height: 90, borderRadius: 12, marginRight: 10 },
+  cardTitulo: { fontWeight: "bold", fontSize: 15 },
+  cardTexto: { color: "gray", fontSize: 13 },
+  mapa: { color: "#00B2CA", marginTop: 5, fontWeight: "500" },
 });
 
 export default PantallaDetalleViaje;
