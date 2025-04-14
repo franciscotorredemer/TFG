@@ -21,17 +21,16 @@ class RegistroViewSet(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save(password=make_password(serializer.validated_data['password']))  # Encriptar la contraseña  
 
-@api_view(['GET', 'PUT'])
+        
+@api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def obtener_perfil(request):
-    usuario = request.user  
+    usuario = request.user
 
-    # Con GET devolvemos la información del usuario
     if request.method == 'GET':
         serializer = CustomUserSerializer(usuario)
         return Response(serializer.data)
     
-    # Con PUT actualizamos la información del usuario
     elif request.method == "PUT":
         data = request.data.copy()
         if "password" in data and data["password"]:
@@ -42,6 +41,11 @@ def obtener_perfil(request):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    elif request.method == "DELETE":
+        usuario.delete()
+        return Response({"mensaje": "Cuenta eliminada correctamente"}, status=204)
+
     
 
 class ViajeViewSet(viewsets.ModelViewSet):
