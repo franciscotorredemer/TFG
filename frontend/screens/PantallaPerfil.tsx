@@ -90,15 +90,18 @@ const PantallaPerfil = ({ navigation }: any) => {
   const eliminarCuenta = async () => {
     try {
       const token = await AsyncStorage.getItem("access_token");
-      await api.delete("perfil/", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
       await AsyncStorage.removeItem("access_token");
       navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+      try {
+        await api.delete("perfil/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      } catch (err) {}
     } catch (error) {
-      Alert.alert("Error", "No se pudo eliminar la cuenta");
+      console.error("Error al eliminar cuenta:", error);
     }
   };
+  
 
   return (
     <ScrollView style={styles.container}>
@@ -139,7 +142,6 @@ const PantallaPerfil = ({ navigation }: any) => {
         </Pressable>
       </Modal>
 
-      {/* Avatar */}
       <View style={styles.avatarContainer}>
         <Image
           source={usuario?.foto_perfil ? { uri: usuario.foto_perfil } : defaultAvatar}
@@ -150,7 +152,6 @@ const PantallaPerfil = ({ navigation }: any) => {
         </TouchableOpacity>
       </View>
 
-      {/* Datos */}
       <View style={styles.infoRow}>
         <Text style={styles.label}>User name</Text>
         <Text style={styles.info}>{usuario?.username}</Text>
@@ -160,7 +161,6 @@ const PantallaPerfil = ({ navigation }: any) => {
         <Text style={styles.info}>{usuario?.email}</Text>
       </View>
 
-      {/* Sección viajes */}
       <View style={styles.viajesHeader}>
         <Text style={styles.titulo}>Mis viajes</Text>
         <TouchableOpacity onPress={() => navigation.navigate("MisViajes")}>
