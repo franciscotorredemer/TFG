@@ -29,6 +29,8 @@ const PantallaPerfil = ({ navigation }: any) => {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [viajes, setViajes] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [seguidores, setSeguidores] = useState(0);
+  const [seguidos, setSeguidos] = useState(0);
   const isFocused = useIsFocused();
 
   useEffect(() => {
@@ -44,6 +46,12 @@ const PantallaPerfil = ({ navigation }: any) => {
           headers: { Authorization: `Bearer ${token}` },
         });
         setViajes(viajesRes.data);
+
+        const relacionRes = await api.get("relacion/contador/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        setSeguidos(relacionRes.data.siguiendo);
+        setSeguidores(relacionRes.data.seguidores);
       } catch (error) {
         Alert.alert("Error", "No se pudieron cargar los datos");
       }
@@ -101,7 +109,6 @@ const PantallaPerfil = ({ navigation }: any) => {
       console.error("Error al eliminar cuenta:", error);
     }
   };
-  
 
   return (
     <ScrollView style={styles.container}>
@@ -149,6 +156,16 @@ const PantallaPerfil = ({ navigation }: any) => {
         />
         <TouchableOpacity style={styles.cameraIcon}>
           <Image source={cameraIcon} style={styles.cameraImage} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.recuentoRow}>
+        <TouchableOpacity onPress={() => navigation.navigate("ListaUsuarios", { modo: "siguiendo" })}>
+          <Text style={styles.contadorTexto}>{seguidos} seguidos</Text>
+        </TouchableOpacity>
+        <Text style={styles.separador}>|</Text>
+        <TouchableOpacity onPress={() => navigation.navigate("ListaUsuarios", { modo: "seguidores" })}>
+          <Text style={styles.contadorTexto}>{seguidores} seguidores</Text>
         </TouchableOpacity>
       </View>
 
@@ -234,6 +251,22 @@ const styles = StyleSheet.create({
     width: 20,
     height: 20,
     tintColor: "#fff",
+  },
+  recuentoRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 5,
+  },
+  contadorTexto: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#000",
+    marginHorizontal: 4,
+  },
+  separador: {
+    color: "#999",
+    fontSize: 16,
   },
   infoRow: {
     flexDirection: "row",
