@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+
+import { useEffect, useState } from "react"
 import {
   View,
   Text,
@@ -9,76 +10,102 @@ import {
   Alert,
   Modal,
   Pressable,
-} from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import api from "../services/api";
-import TarjetaViaje from "../components/TarjetaViaje";
-import { useIsFocused } from "@react-navigation/native";
-import { FontAwesome } from "@expo/vector-icons";
+  ActivityIndicator,
+  StatusBar,
+  Platform,
+} from "react-native"
+import AsyncStorage from "@react-native-async-storage/async-storage"
+import api from "../services/api"
+import TarjetaViaje from "../components/TarjetaViaje"
+import { useIsFocused } from "@react-navigation/native"
+import { Ionicons } from "@expo/vector-icons"
 
-const defaultAvatar = require("../assets/imagenes/user.png");
-const cameraIcon = require("../assets/imagenes/camara.png");
+const avatarPorDefecto = require("../assets/imagenes/user.png")
 
 interface Usuario {
-  username: string;
-  email: string;
-  foto_perfil?: string;
+  nombre_usuario: string
+  correo: string
+  foto_perfil?: string
+}
+
+interface Viaje {
+  id: number
+  nombre: string
+  ciudad: string
+  fecha_inicio: string
+  fecha_fin: string
+  imagen_destacada: string
+  actividades: any[]
 }
 
 const PantallaPerfil = ({ navigation }: any) => {
-  const [usuario, setUsuario] = useState<Usuario | null>(null);
-  const [viajes, setViajes] = useState<any[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [seguidores, setSeguidores] = useState(0);
-  const [seguidos, setSeguidos] = useState(0);
-  const isFocused = useIsFocused();
+  const [usuario, setUsuario] = useState<Usuario | null>(null)
+  const [viajes, setViajes] = useState<Viaje[]>([])
+  const [modalVisible, setModalVisible] = useState(false)
+  const [seguidores, setSeguidores] = useState(0)
+  const [seguidos, setSeguidos] = useState(0)
+  const [cargando, setCargando] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const estaEnFoco = useIsFocused()
+
+  const cargarDatos = async () => {
+    setCargando(true)
+    setError(null)
+
+    try {
+      const token = await AsyncStorage.getItem("access_token")
+      if (!token) {
+        navigation.reset({
+          index: 0,
+          routes: [{ name: "Login" }],
+        })
+        return
+      }
+
+      const [perfilRes, viajesRes, relacionRes] = await Promise.all([
+        api.get("perfil/", { headers: { Authorization: `Bearer ${token}` } }),
+        api.get("mis_viajes/", { headers: { Authorization: `Bearer ${token}` } }),
+        api.get("relacion/contador/", { headers: { Authorization: `Bearer ${token}` } }),
+      ])
+
+      setUsuario({
+        nombre_usuario: perfilRes.data.username,
+        correo: perfilRes.data.email,
+        foto_perfil: perfilRes.data.foto_perfil,
+      })
+      setViajes(viajesRes.data)
+      setSeguidos(relacionRes.data.siguiendo)
+      setSeguidores(relacionRes.data.seguidores)
+    } catch (error) {
+      console.error("Error al cargar datos del perfil:", error)
+      setError("No se pudieron cargar los datos. Intenta de nuevo más tarde.")
+    } finally {
+      setCargando(false)
+    }
+  }
 
   useEffect(() => {
-    const cargarDatos = async () => {
-      const token = await AsyncStorage.getItem("access_token");
-      try {
-        const perfilRes = await api.get("perfil/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setUsuario(perfilRes.data);
-
-        const viajesRes = await api.get("mis_viajes/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setViajes(viajesRes.data);
-
-        const relacionRes = await api.get("relacion/contador/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setSeguidos(relacionRes.data.siguiendo);
-        setSeguidores(relacionRes.data.seguidores);
-      } catch (error) {
-        Alert.alert("Error", "No se pudieron cargar los datos");
-      }
-    };
-
-    if (isFocused) cargarDatos();
-  }, [isFocused]);
+    if (estaEnFoco) cargarDatos()
+  }, [estaEnFoco])
 
   const confirmarCerrarSesion = () => {
-    Alert.alert(
-      "Cerrar sesión",
-      "¿Estás seguro de que quieres cerrar sesión?",
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Cerrar sesión",
-          style: "destructive",
-          onPress: cerrarSesion,
-        },
-      ]
-    );
-  };
+    Alert.alert("Cerrar sesión", "¿Estás seguro de que quieres cerrar sesión?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Cerrar sesión",
+        style: "destructive",
+        onPress: cerrarSesion,
+      },
+    ])
+  }
 
   const cerrarSesion = async () => {
-    await AsyncStorage.removeItem("access_token");
-    navigation.reset({ index: 0, routes: [{ name: "Login" }] });
-  };
+    await AsyncStorage.removeItem("access_token")
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Login" }],
+    })
+  }
 
   const confirmarEliminarCuenta = () => {
     Alert.alert(
@@ -91,149 +118,286 @@ const PantallaPerfil = ({ navigation }: any) => {
           style: "destructive",
           onPress: eliminarCuenta,
         },
-      ]
-    );
-  };
+      ],
+    )
+  }
 
   const eliminarCuenta = async () => {
     try {
-      const token = await AsyncStorage.getItem("access_token");
-      await AsyncStorage.removeItem("access_token");
-      navigation.reset({ index: 0, routes: [{ name: "Login" }] });
+      const token = await AsyncStorage.getItem("access_token")
+      await AsyncStorage.removeItem("access_token")
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Login" }],
+      })
       try {
         await api.delete("perfil/", {
           headers: { Authorization: `Bearer ${token}` },
-        });
-      } catch (err) {}
+        })
+      } catch (err) {
+        console.error("Error al eliminar cuenta en el servidor:", err)
+      }
     } catch (error) {
-      console.error("Error al eliminar cuenta:", error);
+      console.error("Error al eliminar cuenta:", error)
     }
-  };
+  }
+
+  const confirmarEliminarViaje = async (id: number) => {
+    try {
+      Alert.alert("Eliminar viaje", "¿Estás seguro que deseas eliminar este viaje?", [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const token = await AsyncStorage.getItem("access_token")
+              await api.delete(`viajes/${id}/`, {
+                headers: { Authorization: `Bearer ${token}` },
+              })
+              setViajes((prev) => prev.filter((viaje) => viaje.id !== id))
+            } catch (error) {
+              Alert.alert("Error", "No se pudo eliminar el viaje.")
+            }
+          },
+        },
+      ])
+    } catch (error) {
+      Alert.alert("Error", "No se pudo procesar tu solicitud.")
+    }
+  }
+
+  if (cargando) {
+    return (
+      <View style={estilos.contenedorCarga}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={estilos.textoCarga}>Cargando perfil...</Text>
+      </View>
+    )
+  }
+
+  if (error) {
+    return (
+      <View style={estilos.contenedorError}>
+        <Ionicons name="cloud-offline-outline" size={80} color="#ccc" />
+        <Text style={estilos.tituloError}>Error de conexión</Text>
+        <Text style={estilos.textoError}>{error}</Text>
+        <TouchableOpacity style={estilos.botonReintentar} onPress={cargarDatos}>
+          <Text style={estilos.textoBotonReintentar}>Intentar de nuevo</Text>
+        </TouchableOpacity>
+      </View>
+    )
+  }
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.headerRow}>
-        <Text style={styles.titulo}>Mi perfil</Text>
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <FontAwesome name="ellipsis-v" size={24} color="gray" />
+    <View style={estilos.contenedor}>
+      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+
+      {/* Titulo */}
+      <View style={estilos.encabezado}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={estilos.botonAtras}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="chevron-back" size={28} color="#333" />
+        </TouchableOpacity>
+        <Text style={estilos.tituloEncabezado}>Mi Perfil</Text>
+        <TouchableOpacity
+          style={estilos.botonOpciones}
+          onPress={() => setModalVisible(true)}
+          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        >
+          <Ionicons name="ellipsis-horizontal" size={24} color="#333" />
         </TouchableOpacity>
       </View>
 
-      <Modal
-        visible={modalVisible}
-        animationType="fade"
-        transparent
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <Pressable style={styles.modalOverlay} onPress={() => setModalVisible(false)}>
-          <View style={styles.modalMenu}>
-            <TouchableOpacity onPress={() => {
-              setModalVisible(false);
-              navigation.navigate("EditarPerfil");
-            }}>
-              <Text style={styles.modalItem}>Editar perfil</Text>
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={estilos.scrollContenido}>
+        {/* Sección de perfil */}
+        <View style={estilos.seccionPerfil}>
+          <View style={estilos.contenedorAvatar}>
+            <Image source={usuario?.foto_perfil ? { uri: usuario.foto_perfil } : avatarPorDefecto} style={estilos.avatar} />
+            <TouchableOpacity style={estilos.botonCamara} onPress={() => navigation.navigate("EditarPerfil")}>
+              <Ionicons name="camera" size={18} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => {
-              setModalVisible(false);
-              confirmarCerrarSesion();
-            }}>
-              <Text style={[styles.modalItem, { color: "red" }]}>Cerrar sesión</Text>
+          </View>
+
+          <Text style={estilos.nombreUsuario}>{usuario?.nombre_usuario}</Text>
+          <Text style={estilos.correo}>{usuario?.correo}</Text>
+
+          <View style={estilos.contenedorEstadisticas}>
+            <TouchableOpacity
+              style={estilos.itemEstadistica}
+              onPress={() => navigation.navigate("ListaUsuarios", { modo: "siguiendo" })}
+            >
+              <Text style={estilos.numeroEstadistica}>{seguidos}</Text>
+              <Text style={estilos.textoEstadistica}>Siguiendo</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => {
-              setModalVisible(false);
-              confirmarEliminarCuenta();
-            }}>
-              <Text style={[styles.modalItem, { color: "red" }]}>Eliminar cuenta</Text>
+
+            <View style={estilos.divisorEstadistica} />
+
+            <TouchableOpacity
+              style={estilos.itemEstadistica}
+              onPress={() => navigation.navigate("ListaUsuarios", { modo: "seguidores" })}
+            >
+              <Text style={estilos.numeroEstadistica}>{seguidores}</Text>
+              <Text style={estilos.textoEstadistica}>Seguidores</Text>
+            </TouchableOpacity>
+          </View>
+
+          <TouchableOpacity style={estilos.botonEditarPerfil} onPress={() => navigation.navigate("EditarPerfil")}>
+            <Text style={estilos.textoEditarPerfil}>Editar perfil</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Sección de viajes */}
+        <View style={estilos.seccionViajes}>
+          <View style={estilos.encabezadoSeccion}>
+            <Text style={estilos.tituloSeccion}>Mis viajes</Text>
+            <TouchableOpacity onPress={() => navigation.navigate("MisViajes")}>
+              <View style={estilos.botonVerTodos}>
+                <Text style={estilos.textoVerTodos}>Ver todos</Text>
+                <Ionicons name="chevron-forward" size={16} color="#007AFF" />
+              </View>
+            </TouchableOpacity>
+          </View>
+
+          {viajes.length === 0 ? (
+            <View style={estilos.contenedorVacio}>
+              <Ionicons name="airplane-outline" size={60} color="#ccc" />
+              <Text style={estilos.textoVacio}>No tienes viajes</Text>
+              <TouchableOpacity style={estilos.botonCrearViaje} onPress={() => navigation.navigate("NuevoViaje")}>
+                <Text style={estilos.textoCrearViaje}>Crear nuevo viaje</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            viajes
+              .slice(0, 3)
+              .map((viaje) => (
+                <TarjetaViaje
+                  key={viaje.id}
+                  id={viaje.id}
+                  nombre={viaje.nombre}
+                  ciudad={viaje.ciudad}
+                  fecha_inicio={viaje.fecha_inicio}
+                  fecha_fin={viaje.fecha_fin}
+                  imagen_destacada={viaje.imagen_destacada}
+                  actividades={viaje.actividades.length}
+                  onPress={() => navigation.navigate("DetalleViaje", { viajeId: viaje.id })}
+                  onDelete={() => confirmarEliminarViaje(viaje.id)}
+                />
+              ))
+          )}
+        </View>
+      </ScrollView>
+
+      {/* Opciones */}
+      <Modal visible={modalVisible} animationType="fade" transparent onRequestClose={() => setModalVisible(false)}>
+        <Pressable style={estilos.fondoModal} onPress={() => setModalVisible(false)}>
+          <View style={estilos.contenidoModal}>
+            <TouchableOpacity
+              style={estilos.itemModal}
+              onPress={() => {
+                setModalVisible(false)
+                navigation.navigate("EditarPerfil")
+              }}
+            >
+              <Ionicons name="person-outline" size={22} color="#333" style={estilos.iconoModal} />
+              <Text style={estilos.textoItemModal}>Editar perfil</Text>
+            </TouchableOpacity>
+
+            <View style={estilos.divisorModal} />
+
+            <TouchableOpacity
+              style={estilos.itemModal}
+              onPress={() => {
+                setModalVisible(false)
+                confirmarCerrarSesion()
+              }}
+            >
+              <Ionicons name="log-out-outline" size={22} color="#FF3B30" style={estilos.iconoModal} />
+              <Text style={[estilos.textoItemModal, estilos.textoPeligro]}>Cerrar sesión</Text>
+            </TouchableOpacity>
+
+            <View style={estilos.divisorModal} />
+
+            <TouchableOpacity
+              style={estilos.itemModal}
+              onPress={() => {
+                setModalVisible(false)
+                confirmarEliminarCuenta()
+              }}
+            >
+              <Ionicons name="trash-outline" size={22} color="#FF3B30" style={estilos.iconoModal} />
+              <Text style={[estilos.textoItemModal, estilos.textoPeligro]}>Eliminar cuenta</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
       </Modal>
+    </View>
+  )
+}
 
-      <View style={styles.avatarContainer}>
-        <Image
-          source={usuario?.foto_perfil ? { uri: usuario.foto_perfil } : defaultAvatar}
-          style={styles.avatar}
-        />
-        <TouchableOpacity style={styles.cameraIcon}>
-          <Image source={cameraIcon} style={styles.cameraImage} />
-        </TouchableOpacity>
-      </View>
+export default PantallaPerfil
 
-      <View style={styles.recuentoRow}>
-        <TouchableOpacity onPress={() => navigation.navigate("ListaUsuarios", { modo: "siguiendo" })}>
-          <Text style={styles.contadorTexto}>{seguidos} seguidos</Text>
-        </TouchableOpacity>
-        <Text style={styles.separador}>|</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("ListaUsuarios", { modo: "seguidores" })}>
-          <Text style={styles.contadorTexto}>{seguidores} seguidores</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.infoRow}>
-        <Text style={styles.label}>User name</Text>
-        <Text style={styles.info}>{usuario?.username}</Text>
-      </View>
-      <View style={styles.infoRow}>
-        <Text style={styles.label}>Email</Text>
-        <Text style={styles.info}>{usuario?.email}</Text>
-      </View>
-
-      <View style={styles.viajesHeader}>
-        <Text style={styles.titulo}>Mis viajes</Text>
-        <TouchableOpacity onPress={() => navigation.navigate("MisViajes")}>
-          <Text style={styles.verTodos}>Ver todos</Text>
-        </TouchableOpacity>
-      </View>
-
-      {viajes.map((viaje) => (
-        <TarjetaViaje
-          key={viaje.id}
-          nombre={viaje.nombre}
-          ciudad={viaje.ciudad}
-          fecha_inicio={viaje.fecha_inicio}
-          fecha_fin={viaje.fecha_fin}
-          imagen_destacada={viaje.imagen_destacada}
-          actividades={viaje.actividades.length}
-          onPress={() => navigation.navigate("DetalleViaje", { viajeId: viaje.id })}
-        />
-      ))}
-    </ScrollView>
-  );
-};
-
-const styles = StyleSheet.create({
-  container: {
-    backgroundColor: "#fff",
+const estilos = StyleSheet.create({
+  contenedor: {
     flex: 1,
-    paddingTop: 50,
+    backgroundColor: "#fff",
+    paddingTop: Platform.OS === "ios" ? 50 : StatusBar.currentHeight,
   },
-  headerRow: {
+  scrollContenido: {
+    paddingBottom: 40,
+  },
+  encabezado: {
     flexDirection: "row",
+    alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
   },
-  titulo: {
-    fontSize: 24,
+  botonAtras: {
+    padding: 4,
+  },
+  tituloEncabezado: {
+    fontSize: 20,
     fontWeight: "bold",
+    color: "#333",
   },
-  avatarContainer: {
+  botonOpciones: {
+    padding: 4,
+    borderRadius: 20,
+  },
+  seccionPerfil: {
     alignItems: "center",
-    marginVertical: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 16,
+    borderBottomWidth: 8,
+    borderBottomColor: "#f5f5f5",
+  },
+  contenedorAvatar: {
     position: "relative",
+    marginBottom: 16,
   },
   avatar: {
     width: 120,
     height: 120,
     borderRadius: 60,
+    borderWidth: 3,
+    borderColor: "#fff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  cameraIcon: {
+  botonCamara: {
     position: "absolute",
     bottom: 0,
-    left: "55%",
-    transform: [{ translateX: -18 }],
-    padding: 8,
-    backgroundColor: "#00C4CC",
+    right: 0,
+    backgroundColor: "#007AFF",
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -241,74 +405,180 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 2,
     borderColor: "#fff",
-    elevation: 4,
     shadowColor: "#000",
-    shadowOpacity: 0.2,
     shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 2,
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
   },
-  cameraImage: {
-    width: 20,
-    height: 20,
-    tintColor: "#fff",
-  },
-  recuentoRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    marginTop: 5,
-  },
-  contadorTexto: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#000",
-    marginHorizontal: 4,
-  },
-  separador: {
-    color: "#999",
-    fontSize: 16,
-  },
-  infoRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 20,
-    marginVertical: 10,
-  },
-  label: {
-    color: "lightgray",
-    fontSize: 14,
-  },
-  info: {
-    fontSize: 16,
+  nombreUsuario: {
+    fontSize: 24,
+    fontWeight: "bold",
     color: "#333",
-    fontWeight: "500",
+    marginBottom: 4,
   },
-  viajesHeader: {
+  correo: {
+    fontSize: 16,
+    color: "#666",
+    marginBottom: 20,
+  },
+  contenedorEstadisticas: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    width: "100%",
+    marginBottom: 24,
+  },
+  itemEstadistica: {
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  numeroEstadistica: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  textoEstadistica: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: 4,
+  },
+  divisorEstadistica: {
+    width: 1,
+    height: 30,
+    backgroundColor: "#e0e0e0",
+  },
+  botonEditarPerfil: {
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#007AFF",
+  },
+  textoEditarPerfil: {
+    color: "#007AFF",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  seccionViajes: {
+    padding: 16,
+  },
+  encabezadoSeccion: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  tituloSeccion: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+  },
+  botonVerTodos: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  textoVerTodos: {
+    fontSize: 16,
+    color: "#007AFF",
+    marginRight: 4,
+  },
+  contenedorVacio: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 40,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 12,
+  },
+  textoVacio: {
+    fontSize: 16,
+    color: "#666",
+    marginTop: 12,
+    marginBottom: 16,
+  },
+  botonCrearViaje: {
+    backgroundColor: "#007AFF",
     paddingHorizontal: 20,
-    marginTop: 30,
-    marginBottom: 10,
+    paddingVertical: 12,
+    borderRadius: 8,
   },
-  verTodos: {
-    color: "#00C4CC",
-    fontWeight: "500",
+  textoCrearViaje: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
   },
-  modalOverlay: {
+  fondoModal: {
     flex: 1,
-    backgroundColor: "rgba(0,0,0,0.3)",
+    backgroundColor: "rgba(0,0,0,0.5)",
     justifyContent: "flex-end",
   },
-  modalMenu: {
+  contenidoModal: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    padding: 16,
+  },
+  itemModal: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 16,
+  },
+  iconoModal: {
+    marginRight: 16,
+    width: 24,
+  },
+  textoItemModal: {
+    fontSize: 18,
+    color: "#333",
+  },
+  divisorModal: {
+    height: 1,
+    backgroundColor: "#f0f0f0",
+    width: "100%",
+  },
+  textoPeligro: {
+    color: "#FF3B30",
+  },
+  contenedorCarga: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
+  },
+  textoCarga: {
+    marginTop: 12,
+    fontSize: 16,
+    color: "#666",
+  },
+  contenedorError: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
     backgroundColor: "#fff",
     padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
   },
-  modalItem: {
-    fontSize: 18,
+  tituloError: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    marginTop: 16,
+  },
+  textoError: {
+    fontSize: 16,
+    color: "#666",
+    textAlign: "center",
+    marginTop: 8,
+    marginBottom: 24,
+  },
+  botonReintentar: {
+    backgroundColor: "#007AFF",
+    paddingHorizontal: 20,
     paddingVertical: 12,
+    borderRadius: 8,
   },
-});
-
-export default PantallaPerfil;
+  textoBotonReintentar: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+})
