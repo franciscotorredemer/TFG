@@ -1,19 +1,18 @@
 from rest_framework import serializers
 from .models import Actividad, CustomUser, Viaje, Hotel, ActividadEnViaje, Relacion
 
-
 class ActividadSerializer(serializers.ModelSerializer):
     class Meta:
         model = Actividad
         fields = '__all__'
 
-
 class CustomUserSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+
     class Meta:
         model = CustomUser
-        fields = ['username', 'email', 'password', 'foto_perfil']
+        fields = ['id', 'username', 'email', 'password', 'foto_perfil']
         extra_kwargs = {'password': {'write_only': True}}
-
 
 class ActividadConFechaSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='actividad.id')
@@ -27,16 +26,14 @@ class ActividadConFechaSerializer(serializers.ModelSerializer):
         model = ActividadEnViaje
         fields = ['id', 'nombre', 'descripcion', 'url_imagen', 'ciudad', 'ubicacion', 'fecha_realizacion']
 
-
 class HotelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hotel
         fields = '__all__'
 
-
 class ViajeSerializer(serializers.ModelSerializer):
     actividades = serializers.SerializerMethodField()
-    hoteles = HotelSerializer(many=True, read_only=True)  
+    hoteles = HotelSerializer(many=True, read_only=True)
 
     class Meta:
         model = Viaje
@@ -49,19 +46,17 @@ class ViajeSerializer(serializers.ModelSerializer):
             'fecha_fin',
             'imagen_destacada',
             'actividades',
-            'hoteles', 
+            'hoteles',
         ]
 
     def get_actividades(self, obj):
         relaciones = ActividadEnViaje.objects.filter(viaje=obj)
         return ActividadConFechaSerializer(relaciones, many=True).data
 
-
 class ActividadEnViajeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActividadEnViaje
         fields = ['id', 'viaje', 'actividad', 'fecha_realizacion']
-
 
 class RelacionSerializer(serializers.ModelSerializer):
     class Meta:
