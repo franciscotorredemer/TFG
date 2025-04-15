@@ -114,3 +114,33 @@ class RelacionViewSet(viewsets.ViewSet):
     def estado(self, request, pk=None):
         siguiendo = Relacion.objects.filter(seguidor=request.user, seguido_id=pk).exists()
         return Response({"siguiendo": siguiendo})
+
+    @action(detail=False, methods=['get'], url_path='seguimientos')
+    def seguidos(self, request):
+        relaciones = Relacion.objects.filter(seguidor=request.user)
+        data = [{"id": r.seguido.id, "username": r.seguido.username} for r in relaciones]
+        return Response(data)
+
+    @action(detail=False, methods=['get'], url_path='seguidores')
+    def seguidores(self, request):
+        relaciones = Relacion.objects.filter(seguido=request.user)
+        data = [{"id": r.seguidor.id, "username": r.seguidor.username} for r in relaciones]
+        return Response(data)
+
+    @action(detail=True, methods=['get'], url_path='info')
+    def info_usuario(self, request, pk=None):
+        try:
+            user = User.objects.get(id=pk)
+            serializer = CustomUserSerializer(user)
+            return Response(serializer.data)
+        except User.DoesNotExist:
+            return Response({"error": "Usuario no encontrado"}, status=404)
+
+    @action(detail=False, methods=['get'], url_path='contador')
+    def contador(self, request):
+        seguidores = Relacion.objects.filter(seguido=request.user).count()
+        siguiendo = Relacion.objects.filter(seguidor=request.user).count()
+        return Response({
+            "siguiendo": siguiendo,
+            "seguidores": seguidores
+        })

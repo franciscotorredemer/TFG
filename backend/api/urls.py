@@ -17,6 +17,7 @@ router.register(r'actividades', ActividadViewSet)
 router.register(r'viajes', ViajeViewSet)
 router.register(r'hoteles', HotelViewSet)
 router.register(r'actividades_en_viaje', ActividadEnViajeViewSet)
+router.register(r'relacion', RelacionViewSet, basename='relacion')
 
 relacion_list = RelacionViewSet.as_view({
     'post': 'create'
@@ -37,8 +38,6 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/perfil/', obtener_perfil, name='perfil'),
     path('api/mis_viajes/', mis_viajes, name='mis_viajes'),
-
-    # Rutas para las funciones sociales entre usuarios
     path('api/seguir/', relacion_list, name='seguir_usuario'),
     path('api/dejar_de_seguir/<int:pk>/', relacion_destroy, name='dejar_de_seguir'),
     path('api/eliminar_seguidor/<int:pk>/', relacion_eliminar_seguidor, name='eliminar_seguidor'),
