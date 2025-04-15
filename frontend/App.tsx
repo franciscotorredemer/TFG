@@ -11,6 +11,7 @@ import PantallaEditarPerfil from "./screens/PantallaEditarPerfil";
 import PantallaDetalleActividad from "./screens/PantallaDetalleActividad";
 import MisViajes from "./screens/MisViajes";
 import PantallaPerfil from "./screens/PantallaPerfil";
+import ListaUsuarios from "./screens/ListaUsuarios";
 
 export type RootStackParamList = {
   Inicio: undefined;
@@ -22,6 +23,7 @@ export type RootStackParamList = {
   DetalleActividad: { actividad: any; viajeId?: number };
   MisViajes: undefined;
   Perfil: undefined;
+  ListaUsuarios: { modo: "seguidores" | "siguiendo" };
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -39,6 +41,7 @@ const App: React.FC = () => {
         <Stack.Screen name="DetalleActividad" component={PantallaDetalleActividad} />
         <Stack.Screen name="MisViajes" component={MisViajes} />
         <Stack.Screen name="Perfil" component={PantallaPerfil} />
+        <Stack.Screen name="ListaUsuarios" component={ListaUsuarios} />
       </Stack.Navigator>
     </NavigationContainer>
   );
