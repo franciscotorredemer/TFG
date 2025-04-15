@@ -1,4 +1,4 @@
-"use client"
+
 import type React from "react"
 import { useEffect, useState, useRef } from "react"
 import {
@@ -58,7 +58,7 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
   const passwordInputRef = useRef<TextInput>(null)
   const confirmPasswordInputRef = useRef<TextInput>(null)
 
-  // Animation values
+  
   const fadeAnim = useRef(new Animated.Value(0)).current
   const slideAnim = useRef(new Animated.Value(50)).current
 
@@ -66,7 +66,7 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
     if (isFocused) {
       cargarPerfil()
 
-      // Start animations
+      
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -123,8 +123,7 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
       if (!result.canceled && result.assets && result.assets.length > 0) {
         setImageLoading(true)
 
-        // Here you would normally upload the image to your server
-        // For this example, we'll just update the local state
+        
         setTimeout(() => {
           setProfile((prev) => ({
             ...prev,
@@ -182,8 +181,7 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
         data.password = password
       }
 
-      // If you had image upload functionality, you would handle that here
-      // For this example, we're assuming the API accepts these fields
+    
 
       await api.put("perfil/", data, {
         headers: { Authorization: `Bearer ${token}` },
@@ -207,7 +205,7 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
     }))
     setHasChanges(true)
 
-    // Clear error when user types
+  
     if (errors[field]) {
       setErrors((prev) => ({
         ...prev,
@@ -240,7 +238,7 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      {/* Header */}
+      {/* Encabezado */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={handleBackPress}
@@ -255,7 +253,7 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <Animated.View style={[styles.formContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
-          {/* Profile Picture */}
+        
           <View style={styles.profileImageContainer}>
             {imageLoading ? (
               <View style={styles.imageLoading}>
@@ -274,7 +272,7 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
 
           <Text style={styles.changePhotoText}>Toca para cambiar tu foto</Text>
 
-          {/* Form Fields */}
+          {/* Formularios*/}
           <View style={styles.formGroup}>
             <Text style={styles.label}>Nombre de usuario</Text>
             <View style={[styles.inputContainer, errors.username ? styles.inputError : null]}>

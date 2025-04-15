@@ -1,4 +1,4 @@
-"use client"
+
 import { useEffect, useState, useRef } from "react"
 import {
   View,
@@ -91,7 +91,7 @@ const ListaUsuarios = () => {
       setUsuarios(usuariosData)
       setFilteredUsuarios(usuariosData)
 
-      // Start animations
+      
       Animated.parallel([
         Animated.timing(fadeAnim, {
           toValue: 1,
@@ -114,7 +114,7 @@ const ListaUsuarios = () => {
   }
 
   const toggleSeguir = async (usuarioId: number, actualmenteSiguiendo: boolean) => {
-    // Add to processing IDs to show loading state
+    
     setProcessingIds((prev) => [...prev, usuarioId])
 
     try {
@@ -138,7 +138,7 @@ const ListaUsuarios = () => {
         )
       }
 
-      // Update both lists
+      // Actualizamos las listas
       const updateUser = (list: Usuario[]) =>
         list.map((u) => (u.id === usuarioId ? { ...u, siguiendo: !actualmenteSiguiendo } : u))
 
@@ -151,7 +151,7 @@ const ListaUsuarios = () => {
         actualmenteSiguiendo ? "No se pudo dejar de seguir al usuario" : "No se pudo seguir al usuario",
       )
     } finally {
-      // Remove from processing IDs
+      
       setProcessingIds((prev) => prev.filter((id) => id !== usuarioId))
     }
   }
@@ -171,7 +171,7 @@ const ListaUsuarios = () => {
               headers: { Authorization: `Bearer ${token}` },
             })
 
-            // Remove user from both lists
+            // borramos al usuaario de las listas
             const filterUser = (list: Usuario[]) => list.filter((u) => u.id !== usuario.id)
             setUsuarios(filterUser)
             setFilteredUsuarios(filterUser)
@@ -203,8 +203,7 @@ const ListaUsuarios = () => {
   }
 
   const viewProfile = (usuario: Usuario) => {
-    // Navigate to user profile
-    // This would be implemented based on your app's navigation structure
+    // Aquí puedes navegar a la pantalla de perfil del usuario 
     Alert.alert("Ver perfil", `Ver perfil de ${usuario.username}`)
     // navigation.navigate("PerfilUsuario", { userId: usuario.id })
   }
@@ -252,7 +251,7 @@ const ListaUsuarios = () => {
     const isProcessing = processingIds.includes(item.id)
     const siguiendo = item.siguiendo
 
-    // Calculate animation delay based on index
+    // Aqui usamos esto para hacer una animacion segun el tiempo
     const animationDelay = index * 100
 
     return (
@@ -326,7 +325,7 @@ const ListaUsuarios = () => {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      {/* Header */}
+      
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -339,7 +338,7 @@ const ListaUsuarios = () => {
         <View style={{ width: 28 }} />
       </View>
 
-      {/* Search Bar */}
+     
       <View style={styles.searchContainer}>
         <Ionicons name="search-outline" size={20} color="#666" style={styles.searchIcon} />
         <TextInput
