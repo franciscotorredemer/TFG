@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser
 from datetime import date
 
@@ -57,4 +58,16 @@ class Hotel(models.Model):
 
     def __str__(self):
         return f"{self.nombre} ({self.ciudad}, {self.pais})"
+    
+
+class Relacion(models.Model):
+    seguidor = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="siguiendo", on_delete=models.CASCADE)
+    seguido = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="seguidores", on_delete=models.CASCADE)
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('seguidor', 'seguido')
+
+    def __str__(self):
+        return f"{self.seguidor} sigue a {self.seguido}"
 
