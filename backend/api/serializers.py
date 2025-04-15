@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Actividad, CustomUser, Viaje, Hotel, ActividadEnViaje
+from .models import Actividad, CustomUser, Viaje, Hotel, ActividadEnViaje, Relacion
 
 
 class ActividadSerializer(serializers.ModelSerializer):
@@ -36,7 +36,7 @@ class HotelSerializer(serializers.ModelSerializer):
 
 class ViajeSerializer(serializers.ModelSerializer):
     actividades = serializers.SerializerMethodField()
-    hoteles = HotelSerializer(many=True, read_only=True)  # ← Añadido aquí
+    hoteles = HotelSerializer(many=True, read_only=True)  
 
     class Meta:
         model = Viaje
@@ -49,7 +49,7 @@ class ViajeSerializer(serializers.ModelSerializer):
             'fecha_fin',
             'imagen_destacada',
             'actividades',
-            'hoteles',  # ← Añadido aquí
+            'hoteles', 
         ]
 
     def get_actividades(self, obj):
@@ -61,3 +61,9 @@ class ActividadEnViajeSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActividadEnViaje
         fields = ['id', 'viaje', 'actividad', 'fecha_realizacion']
+
+
+class RelacionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Relacion
+        fields = '__all__'

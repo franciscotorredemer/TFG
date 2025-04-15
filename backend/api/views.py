@@ -1,27 +1,27 @@
-from rest_framework import viewsets, generics
-from .models import Actividad, CustomUser, Viaje, Hotel, ActividadEnViaje
-from .serializers import ActividadSerializer, CustomUserSerializer, ViajeSerializer, HotelSerializer, ActividadEnViajeSerializer
+from rest_framework import viewsets, generics, status
+from .models import Actividad, CustomUser, Viaje, Hotel, ActividadEnViaje, Relacion
+from .serializers import ActividadSerializer, CustomUserSerializer, ViajeSerializer, HotelSerializer, ActividadEnViajeSerializer, RelacionSerializer
 from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
+from django.contrib.auth import get_user_model
 
-
+User = get_user_model()
 
 class ActividadViewSet(viewsets.ModelViewSet):
-    queryset = Actividad.objects.all()  # Obtener todas las actividades
-    serializer_class = ActividadSerializer  # Usamos el serializador de Actividad
-    permission_classes = [IsAuthenticated]  # Requerimos login para ver las actividades
+    queryset = Actividad.objects.all()
+    serializer_class = ActividadSerializer
+    permission_classes = [IsAuthenticated]
 
 class RegistroViewSet(generics.CreateAPIView):
-    queryset = CustomUser.objects.all()  # Obtener todos los usuarios
-    serializer_class = CustomUserSerializer  # Usamos el serializador de CustomUser
-    permission_classes = []  # No requerimos login para registrar un usuario
+    queryset = CustomUser.objects.all()
+    serializer_class = CustomUserSerializer
+    permission_classes = []
 
     def perform_create(self, serializer):
-        serializer.save(password=make_password(serializer.validated_data['password']))  # Encriptar la contraseña  
+        serializer.save(password=make_password(serializer.validated_data['password']))
 
-        
 @api_view(['GET', 'PUT', 'DELETE'])
 @permission_classes([IsAuthenticated])
 def obtener_perfil(request):
@@ -30,7 +30,6 @@ def obtener_perfil(request):
     if request.method == 'GET':
         serializer = CustomUserSerializer(usuario)
         return Response(serializer.data)
-    
     elif request.method == "PUT":
         data = request.data.copy()
         if "password" in data and data["password"]:
@@ -41,12 +40,9 @@ def obtener_perfil(request):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
     elif request.method == "DELETE":
         usuario.delete()
         return Response({"mensaje": "Cuenta eliminada correctamente"}, status=204)
-
-    
 
 class ViajeViewSet(viewsets.ModelViewSet):
     queryset = Viaje.objects.all()
@@ -54,33 +50,20 @@ class ViajeViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
-        """
-        Asignamos el usuario autenticado al viaje que se está creando.
-        """
-        serializer.save(usuario=self.request.user)  # Aquí se asigna el usuario autenticado
+        serializer.save(usuario=self.request.user)
 
     def get_queryset(self):
-        """
-        Filtramos los viajes para que solo el propio usuario autenticado pueda ver sus propios viajes.
-        """
         return Viaje.objects.filter(usuario=self.request.user).order_by('-fecha_inicio')
-
-    
-
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def mis_viajes(request):
-    """
-    Devuelve los dos últimos viajes del usuario autenticado.
-    """
     viajes = Viaje.objects.filter(usuario=request.user).order_by('-fecha_inicio')[:2]
     serializer = ViajeSerializer(viajes, many=True)
     return Response(serializer.data)
 
-
 class HotelViewSet(viewsets.ModelViewSet):
-    queryset = Hotel.objects.all() 
+    queryset = Hotel.objects.all()
     serializer_class = HotelSerializer
     permission_classes = [IsAuthenticated]
 
@@ -90,16 +73,39 @@ class HotelViewSet(viewsets.ModelViewSet):
         if viaje_id:
             queryset = queryset.filter(viaje__id=viaje_id)
         return queryset
-    
 
 class ActividadEnViajeViewSet(viewsets.ModelViewSet):
     queryset = ActividadEnViaje.objects.all()
     serializer_class = ActividadEnViajeSerializer
     permission_classes = [IsAuthenticated]
 
+class RelacionViewSet(viewsets.ViewSet):
+    permission_classes = [IsAuthenticated]
 
+    def create(self, request):
+        seguido_id = request.data.get("seguido")
+        if seguido_id == request.user.id:
+            return Response({"error": "No puedes seguirte a ti mismo."}, status=400)
 
-    
+        if Relacion.objects.filter(seguidor=request.user, seguido_id=seguido_id).exists():
+            return Response({"error": "Ya sigues a este usuario."}, status=400)
 
-    
+        relacion = Relacion.objects.create(seguidor=request.user, seguido_id=seguido_id)
+        return Response(RelacionSerializer(relacion).data, status=201)
 
+    def destroy(self, request, pk=None):
+        try:
+            relacion = Relacion.objects.get(seguidor=request.user, seguido_id=pk)
+            relacion.delete()
+            return Response(status=204)
+        except Relacion.DoesNotExist:
+            return Response({"error": "No estás siguiendo a este usuario."}, status=404)
+
+    @action(detail=True, methods=['delete'], url_path='eliminar_seguidor')
+    def delete_seguidor(self, request, pk=None):
+        try:
+            relacion = Relacion.objects.get(seguidor_id=pk, seguido=request.user)
+            relacion.delete()
+            return Response(status=204)
+        except Relacion.DoesNotExist:
+            return Response({"error": "Ese usuario no te sigue."}, status=404)
