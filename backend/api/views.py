@@ -109,3 +109,8 @@ class RelacionViewSet(viewsets.ViewSet):
             return Response(status=204)
         except Relacion.DoesNotExist:
             return Response({"error": "Ese usuario no te sigue."}, status=404)
+
+    @action(detail=True, methods=['get'], url_path='estado')
+    def estado(self, request, pk=None):
+        siguiendo = Relacion.objects.filter(seguidor=request.user, seguido_id=pk).exists()
+        return Response({"siguiendo": siguiendo})
