@@ -15,11 +15,10 @@ class Actividad(models.Model):
         return f"{self.nombre} - {self.fecha_realizacion}"
 
 class CustomUser(AbstractUser):
-    """
-    Utilizamos AbstractUser para extender el modelo de usuario de Django
-    """
-    email = models.EmailField(unique=True)  # El email del usuario será único
-    foto_perfil = models.ImageField(upload_to="perfil/", blank=True, null=True)  # Foto de usuario opcionalmente
+    email = models.EmailField(unique=True)
+    foto_perfil = models.URLField(blank=True, null=True) 
+    bio = models.TextField(blank=True, null=True)
+    ubicacion = models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.username  # Retorna el nombre de usuario

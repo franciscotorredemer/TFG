@@ -22,6 +22,8 @@ import api from "../services/api"
 import { type NavigationProp, useIsFocused } from "@react-navigation/native"
 import { Ionicons } from "@expo/vector-icons"
 import * as ImagePicker from "expo-image-picker"
+import { subirImagenPerfil } from "../services/subirImagenBucket"
+
 
 interface Props {
   navigation: NavigationProp<any>
@@ -163,12 +165,11 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
 
   const handleGuardar = async () => {
     Keyboard.dismiss()
-
-    if (!validateForm()) {
-      return
-    }
-
+  
+    if (!validateForm()) return
+  
     setIsSaving(true)
+  
     try {
       const token = await AsyncStorage.getItem("access_token")
       const data: any = {
@@ -176,17 +177,34 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
         bio: profile.bio,
         ubicacion: profile.ubicacion,
       }
-
+  
       if (password) {
         data.password = password
       }
-
-    
-
+  
+      // Subida de imagen si es una nueva
+      if (profile.foto_perfil?.startsWith('file://')) {
+        const url = await subirImagenPerfil(profile.foto_perfil, profile.username)
+        if (url) {
+          data.foto_perfil = url
+        }
+      } else if (profile.foto_perfil?.startsWith('http')) {
+        // Ya era una imagen subida, simplemente reenviar
+        data.foto_perfil = profile.foto_perfil
+      }
+  
+      // Mostrar datos en un Alert antes de hacer el PUT
+      Alert.alert(
+        "🔼 Enviando al backend",
+        Object.entries(data)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join('\n')
+      )
+  
       await api.put("perfil/", data, {
         headers: { Authorization: `Bearer ${token}` },
       })
-
+  
       Alert.alert("Éxito", "Perfil actualizado correctamente")
       setHasChanges(false)
       navigation.goBack()
@@ -197,6 +215,8 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
       setIsSaving(false)
     }
   }
+  
+  
 
   const handleInputChange = (field: keyof UserProfile, value: string) => {
     setProfile((prev) => ({
