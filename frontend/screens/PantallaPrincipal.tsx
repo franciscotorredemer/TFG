@@ -44,6 +44,8 @@ const PantallaPrincipal: React.FC<PropsPantallaPrincipal> = ({ navigation }) => 
   const [viajes, setViajes] = useState<Viaje[]>([])
   const [cargando, setCargando] = useState(true)
   const [textoBusqueda, setTextoBusqueda] = useState("")
+  const [fotoUsuario, setFotoUsuario] = useState<string | null>(null)
+
 
   const cargarViajes = async () => {
     setCargando(true)
@@ -61,12 +63,28 @@ const PantallaPrincipal: React.FC<PropsPantallaPrincipal> = ({ navigation }) => 
     }
   }
 
+  const cargarPerfil = async () => {
+    try {
+      const token = await AsyncStorage.getItem("access_token")
+      const res = await api.get("perfil/", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setFotoUsuario(res.data.foto_perfil || null)
+    } catch (error) {
+      console.error("Error al cargar perfil del usuario:", error)
+    }
+  }
+  
+  
+
   useEffect(() => {
     const unsuscribir = navigation.addListener("focus", () => {
       cargarViajes()
+      cargarPerfil()
     })
     return unsuscribir
   }, [navigation])
+  
 
   const eliminarViaje = async (id: number) => {
     try {
@@ -111,7 +129,10 @@ const PantallaPrincipal: React.FC<PropsPantallaPrincipal> = ({ navigation }) => 
             <Ionicons name="notifications-outline" size={24} color="#333" />
           </TouchableOpacity>
           <TouchableOpacity onPress={() => navigation.navigate("Perfil")} style={estilos.contenedorPerfil}>
-            <Image source={fotoPerfil} style={estilos.fotoPerfil} />
+            <Image
+            source={fotoUsuario ? { uri: fotoUsuario } : fotoPerfil}
+            style={estilos.fotoPerfil}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -242,7 +263,7 @@ const estilos = StyleSheet.create({
   contenedorPerfil: {
     borderRadius: 25,
     borderWidth: 2,
-    borderColor: "#007AFF",
+    borderColor: "#D1D1D6",
     overflow: "hidden",
   },
   fotoPerfil: {

@@ -250,6 +250,7 @@ const ListaUsuarios = () => {
   const renderItem = ({ item, index }: { item: Usuario; index: number }) => {
     const isProcessing = processingIds.includes(item.id)
     const siguiendo = item.siguiendo
+    
 
     // Aqui usamos esto para hacer una animacion segun el tiempo
     const animationDelay = index * 100

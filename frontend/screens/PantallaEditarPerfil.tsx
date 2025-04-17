@@ -23,6 +23,8 @@ import { type NavigationProp, useIsFocused } from "@react-navigation/native"
 import { Ionicons } from "@expo/vector-icons"
 import * as ImagePicker from "expo-image-picker"
 import { subirImagenPerfil } from "../services/subirImagenBucket"
+import { borrarImagenPerfil } from "../services/borrarImagenBucket"
+
 
 
 interface Props {
@@ -33,9 +35,11 @@ interface UserProfile {
   username: string
   email: string
   foto_perfil?: string
+  foto_perfil_actual?: string
   bio?: string
   ubicacion?: string
 }
+
 
 const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
   const [profile, setProfile] = useState<UserProfile>({
@@ -92,11 +96,12 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       setProfile({
-        username: response.data.username || "",
-        email: response.data.email || "",
-        foto_perfil: response.data.foto_perfil || "",
-        bio: response.data.bio || "",
-        ubicacion: response.data.ubicacion || "",
+        username: response.data.username,
+        email: response.data.email,
+        foto_perfil: response.data.foto_perfil,
+        foto_perfil_actual: response.data.foto_perfil,
+        bio: response.data.bio,
+        ubicacion: response.data.ubicacion,
       })
     } catch (error) {
       console.error("Error al cargar perfil:", error)
@@ -183,23 +188,25 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
       }
   
       // Subida de imagen si es una nueva
-      if (profile.foto_perfil?.startsWith('file://')) {
+      if (profile.foto_perfil?.startsWith("file://")) {
         const url = await subirImagenPerfil(profile.foto_perfil, profile.username)
+      
         if (url) {
+          // Si hay una imagen anterior y es de supabase, la borramos
+          if (profile.foto_perfil_actual && profile.foto_perfil_actual.includes("fotosperfil")) {
+            const nombre = profile.foto_perfil_actual.split("/").pop()
+            if (nombre) await borrarImagenPerfil(nombre)
+          }
+      
           data.foto_perfil = url
         }
-      } else if (profile.foto_perfil?.startsWith('http')) {
+      }
+       else if (profile.foto_perfil?.startsWith('http')) {
         // Ya era una imagen subida, simplemente reenviar
         data.foto_perfil = profile.foto_perfil
       }
-  
-      // Mostrar datos en un Alert antes de hacer el PUT
-      Alert.alert(
-        "🔼 Enviando al backend",
-        Object.entries(data)
-          .map(([key, value]) => `${key}: ${value}`)
-          .join('\n')
-      )
+
+    
   
       await api.put("perfil/", data, {
         headers: { Authorization: `Bearer ${token}` },
