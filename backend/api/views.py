@@ -124,7 +124,7 @@ class RelacionViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'], url_path='seguidores')
     def seguidores(self, request):
         relaciones = Relacion.objects.filter(seguido=request.user)
-        data = [{"id": r.seguidor.id, "username": r.seguidor.username, "foto_perfil": r.seguido.foto_perfil} for r in relaciones]
+        data = [{"id": r.seguidor.id, "username": r.seguidor.username, "foto_perfil": r.seguidor.foto_perfil} for r in relaciones]
         return Response(data)
 
     @action(detail=True, methods=['get'], url_path='info')
