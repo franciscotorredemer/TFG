@@ -26,6 +26,8 @@ interface Usuario {
   nombre_usuario: string
   correo: string
   foto_perfil?: string
+  bio?: string
+  ubicacion?: string
 }
 
 interface Viaje {
@@ -72,6 +74,8 @@ const PantallaPerfil = ({ navigation }: any) => {
         nombre_usuario: perfilRes.data.username,
         correo: perfilRes.data.email,
         foto_perfil: perfilRes.data.foto_perfil,
+        bio: perfilRes.data.bio,
+        ubicacion: perfilRes.data.ubicacion,
       })
       setViajes(viajesRes.data)
       setSeguidos(relacionRes.data.siguiendo)
@@ -195,13 +199,6 @@ const PantallaPerfil = ({ navigation }: any) => {
 
       {/* Titulo */}
       <View style={estilos.encabezado}>
-        <TouchableOpacity
-          onPress={() => navigation.goBack()}
-          style={estilos.botonAtras}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="chevron-back" size={28} color="#333" />
-        </TouchableOpacity>
         <Text style={estilos.tituloEncabezado}>Mi Perfil</Text>
         <TouchableOpacity
           style={estilos.botonOpciones}
@@ -224,6 +221,20 @@ const PantallaPerfil = ({ navigation }: any) => {
 
           <Text style={estilos.nombreUsuario}>{usuario?.nombre_usuario}</Text>
           <Text style={estilos.correo}>{usuario?.correo}</Text>
+          
+          {usuario?.bio ? (
+            <View style={estilos.filaInfo}>
+              <Ionicons name="information-circle-outline" size={18} color="#666" style={estilos.iconoInfo} />
+              <Text style={estilos.bio}>{usuario.bio}</Text>
+            </View>
+          ) : null}
+
+          {usuario?.ubicacion ? (
+            <View style={estilos.filaInfo}>
+              <Ionicons name="location-outline" size={18} color="#666" style={estilos.iconoInfo} />
+              <Text style={estilos.ubicacion}>{usuario.ubicacion}</Text>
+            </View>
+          ) : null}
 
           <View style={estilos.contenedorEstadisticas}>
             <TouchableOpacity
@@ -580,5 +591,26 @@ const estilos = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
+  },
+  filaInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+  iconoInfo: {
+    marginRight: 6,
+  },
+  bio: {
+    fontSize: 15,
+    color: "#444",
+    fontStyle: "italic",
+    textAlign: "left",
+    flexShrink: 1,
+  },
+  ubicacion: {
+    fontSize: 15,
+    color: "#666",
+    textAlign: "left",
+    flexShrink: 1,
   },
 })
