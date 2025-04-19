@@ -69,4 +69,27 @@ class Relacion(models.Model):
 
     def __str__(self):
         return f"{self.seguidor} sigue a {self.seguido}"
+    
+
+class ViajeCompartido(models.Model):
+    viaje = models.OneToOneField(Viaje, on_delete=models.CASCADE, related_name="compartido")
+    comentario = models.TextField(blank=True, null=True)
+    publicado_por = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    fecha_publicacion = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.viaje.nombre} publicado por {self.publicado_por.username}"
+
+    class Meta:
+        ordering = ['-fecha_publicacion']
+
+
+class LikeViaje(models.Model):
+    usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    viaje_compartido = models.ForeignKey(ViajeCompartido, on_delete=models.CASCADE, related_name="likes")
+    creado = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('usuario', 'viaje_compartido')
+
 

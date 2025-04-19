@@ -6,6 +6,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
+from .models import ViajeCompartido, LikeViaje
+from .serializers import ViajeCompartidoSerializer
+from django.utils.timezone import now, timedelta
+
 
 User = get_user_model()
 
@@ -144,3 +148,85 @@ class RelacionViewSet(viewsets.ViewSet):
             "siguiendo": siguiendo,
             "seguidores": seguidores
         })
+    
+
+class ViajeCompartidoViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated]
+    queryset = ViajeCompartido.objects.all()
+    serializer_class = ViajeCompartidoSerializer
+
+
+    def list(self, request):
+        viajes = ViajeCompartido.objects.all()
+        serializer = ViajeCompartidoSerializer(viajes, many=True, context={"request": request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def siguiendo(self, request):
+        seguidos_ids = Relacion.objects.filter(seguidor=request.user).values_list("seguido_id", flat=True)
+        viajes = ViajeCompartido.objects.filter(publicado_por__in=seguidos_ids)
+        serializer = ViajeCompartidoSerializer(viajes, many=True, context={"request": request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def populares(self, request):
+        desde = now() - timedelta(days=30)
+        viajes = ViajeCompartido.objects.filter(fecha_publicacion__gte=desde)
+        viajes = sorted(viajes, key=lambda v: v.likes.count(), reverse=True)
+        serializer = ViajeCompartidoSerializer(viajes, many=True, context={"request": request})
+        return Response(serializer.data)
+
+    @action(detail=False, methods=["get"])
+    def recientes(self, request):
+        viajes = ViajeCompartido.objects.all().order_by("-fecha_publicacion")
+        serializer = ViajeCompartidoSerializer(viajes, many=True, context={"request": request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["post"])
+    def publicar(self, request, pk=None):
+        try:
+            viaje = Viaje.objects.get(pk=pk, usuario=request.user)
+            if hasattr(viaje, 'compartido'):
+                return Response({"error": "Ya está publicado"}, status=400)
+            comentario = request.data.get("comentario", "")
+            compartido = ViajeCompartido.objects.create(viaje=viaje, comentario=comentario, publicado_por=request.user)
+            return Response(ViajeCompartidoSerializer(compartido, context={'request': request}).data)
+        except Viaje.DoesNotExist:
+            return Response({"error": "Viaje no encontrado"}, status=404)
+
+    @action(detail=True, methods=["post"])
+    def despublicar(self, request, pk=None):
+        try:
+            compartido = ViajeCompartido.objects.get(viaje__pk=pk, publicado_por=request.user)
+            compartido.delete()
+            return Response({"mensaje": "Viaje despublicado"})
+        except ViajeCompartido.DoesNotExist:
+            return Response({"error": "No tienes este viaje publicado"}, status=404)
+
+    @action(detail=True, methods=["post"])
+    def like(self, request, pk=None):
+        try:
+            viaje = ViajeCompartido.objects.get(pk=pk)
+            LikeViaje.objects.get_or_create(usuario=request.user, viaje_compartido=viaje)
+            return Response({"mensaje": "Like registrado"})
+        except ViajeCompartido.DoesNotExist:
+            return Response({"error": "Viaje no encontrado"}, status=404)
+
+    @action(detail=True, methods=["post"])
+    def unlike(self, request, pk=None):
+        try:
+            viaje = ViajeCompartido.objects.get(pk=pk)
+            LikeViaje.objects.filter(usuario=request.user, viaje_compartido=viaje).delete()
+            return Response({"mensaje": "Like eliminado"})
+        except ViajeCompartido.DoesNotExist:
+            return Response({"error": "Viaje no encontrado"}, status=404)
+        
+    @action(detail=True, methods=["get"])
+    def esta_publicado(self, request, pk=None):
+     publicado = ViajeCompartido.objects.filter(viaje_id=pk).exists()
+     return Response({"publicado": publicado})
+    
+
+    
+
+

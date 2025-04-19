@@ -8,7 +8,8 @@ from .views import (
     ViajeViewSet,
     HotelViewSet,
     ActividadEnViajeViewSet,
-    RelacionViewSet
+    RelacionViewSet,
+    ViajeCompartidoViewSet
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -18,6 +19,7 @@ router.register(r'viajes', ViajeViewSet)
 router.register(r'hoteles', HotelViewSet)
 router.register(r'actividades_en_viaje', ActividadEnViajeViewSet)
 router.register(r'relacion', RelacionViewSet, basename='relacion')
+router.register(r'viaje_compartido', ViajeCompartidoViewSet, basename="viaje_compartido")
 
 relacion_list = RelacionViewSet.as_view({
     'post': 'create'
