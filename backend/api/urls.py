@@ -5,6 +5,7 @@ from .views import (
     RegistroViewSet,
     obtener_perfil,
     mis_viajes,
+    buscar_usuarios,
     ViajeViewSet,
     HotelViewSet,
     ActividadEnViajeViewSet,
@@ -43,4 +44,5 @@ urlpatterns = [
     path('api/seguir/', relacion_list, name='seguir_usuario'),
     path('api/dejar_de_seguir/<int:pk>/', relacion_destroy, name='dejar_de_seguir'),
     path('api/eliminar_seguidor/<int:pk>/', relacion_eliminar_seguidor, name='eliminar_seguidor'),
+    path("api/usuarios/buscar/", buscar_usuarios, name="buscar_usuarios"),
 ]

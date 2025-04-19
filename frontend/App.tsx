@@ -12,6 +12,7 @@ import PantallaDetalleActividad from "./screens/PantallaDetalleActividad";
 import MisViajes from "./screens/MisViajes";
 import PantallaPerfil from "./screens/PantallaPerfil";
 import ListaUsuarios from "./screens/ListaUsuarios";
+import { PantallaDetalleCompartido } from "./screens/PantallaDetalleCompartido";
 
 export type RootStackParamList = {
   Inicio: undefined;
@@ -42,6 +43,7 @@ const App: React.FC = () => {
         <Stack.Screen name="MisViajes" component={MisViajes} />
         <Stack.Screen name="Perfil" component={PantallaPerfil} />
         <Stack.Screen name="ListaUsuarios" component={ListaUsuarios} />
+        <Stack.Screen name="DetalleCompartido" component={PantallaDetalleCompartido} />
       </Stack.Navigator>
     </NavigationContainer>
   );

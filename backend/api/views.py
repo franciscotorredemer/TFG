@@ -58,6 +58,17 @@ class ViajeViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return Viaje.objects.filter(usuario=self.request.user).order_by('-fecha_inicio')
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def buscar_usuarios(request):
+    query = request.GET.get('q', '')
+    if query:
+        usuarios = User.objects.filter(username__icontains=query).exclude(id=request.user.id)[:10]
+        serializer = CustomUserSerializer(usuarios, many=True)
+        return Response(serializer.data)
+    return Response([])
+
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
