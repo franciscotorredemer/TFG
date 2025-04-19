@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Actividad, CustomUser, Viaje, Hotel, ActividadEnViaje, Relacion
+from .models import Actividad, CustomUser, Viaje, Hotel, ActividadEnViaje, Relacion, ViajeCompartido, LikeViaje
 
 class ActividadSerializer(serializers.ModelSerializer):
     class Meta:
@@ -65,3 +65,18 @@ class RelacionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Relacion
         fields = '__all__'
+
+
+class ViajeCompartidoSerializer(serializers.ModelSerializer):
+    viaje = ViajeSerializer()
+    likes_count = serializers.IntegerField(source='likes.count', read_only=True)
+    ya_dado_like = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ViajeCompartido
+        fields = ['id', 'viaje', 'comentario', 'publicado_por', 'fecha_publicacion', 'likes_count', 'ya_dado_like']
+
+    def get_ya_dado_like(self, obj):
+        user = self.context.get("request").user
+        return obj.likes.filter(usuario=user).exists()
+
