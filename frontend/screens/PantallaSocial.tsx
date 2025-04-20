@@ -10,6 +10,8 @@ import {
   StatusBar,
   Dimensions,
   Platform,
+  TextInput,
+  FlatList,
 } from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import { Ionicons } from "@expo/vector-icons"
@@ -28,6 +30,10 @@ const PantallaSocial = () => {
   const [fotoUsuario, setFotoUsuario] = useState<string | null>(null)
   const [cargando, setCargando] = useState(true)
   const [autores, setAutores] = useState<any>({})
+
+  const [busqueda, setBusqueda] = useState("")
+  const [resultados, setResultados] = useState<any[]>([])
+  const [buscando, setBuscando] = useState(false)
 
   const obtenerAutores = async (viajes) => {
     const token = await AsyncStorage.getItem("access_token")
@@ -95,15 +101,40 @@ const PantallaSocial = () => {
     }
   }
 
+  const buscarUsuarios = async (text: string) => {
+    setBusqueda(text)
+    if (text.length < 2) {
+      setResultados([])
+      return
+    }
+    setBuscando(true)
+    try {
+      const token = await AsyncStorage.getItem("access_token")
+      const headers = { Authorization: `Bearer ${token}` }
+      const res = await api.get(`/usuarios/buscar/?q=${text}`, { headers })
+      setResultados(res.data)
+    } catch (error) {
+      console.error("Error buscando usuarios:", error)
+    } finally {
+      setBuscando(false)
+    }
+  }
+
+  const renderUsuario = ({ item }) => (
+    <View style={styles.userRow}>
+      <Image source={item.foto_perfil ? { uri: item.foto_perfil } : avatarDefault} style={styles.avatar} />
+      <Text style={styles.username}>{item.username}</Text>
+    </View>
+  )
+
   const renderViaje = (viaje) => {
     const autor = autores[viaje.publicado_por] || {}
-  
+
     return (
       <TouchableOpacity
         key={viaje.id}
         style={styles.card}
         onPress={() => navigation.navigate("DetalleCompartido", { id: viaje.id })}
-
       >
         <Image source={{ uri: viaje.viaje.imagen_destacada }} style={styles.image} />
         <Text style={styles.titulo}>{viaje.viaje.nombre}</Text>
@@ -119,7 +150,7 @@ const PantallaSocial = () => {
             <Ionicons
               name={viaje.ya_dado_like ? "heart" : "heart-outline"}
               size={22}
-              color={viaje.ya_dado_like ? "red" : "red"}
+              color="red"
               style={{ marginLeft: 6 }}
             />
           </TouchableOpacity>
@@ -142,14 +173,35 @@ const PantallaSocial = () => {
       <View style={styles.header}>
         <Image source={logo} style={styles.logo} />
         <View style={styles.headerRight}>
-          <Ionicons name="search" size={24} color="#000" style={{ marginRight: 12 }} />
+          <Ionicons name="search-outline" style={styles.iconSearch} />
+          <TextInput
+            placeholder="Buscar usuarios"
+            placeholderTextColor="#888"
+            style={styles.inputBuscar}
+            value={busqueda}
+            onChangeText={buscarUsuarios}
+          />
           <TouchableOpacity onPress={() => navigation.navigate("Perfil")}> 
             <Image source={fotoUsuario ? { uri: fotoUsuario } : avatarDefault} style={styles.fotoPerfil} />
           </TouchableOpacity>
         </View>
       </View>
 
-      {cargando ? (
+      {busqueda.length > 1 ? (
+        buscando ? (
+          <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 30 }} />
+        ) : (
+          <View style={styles.resultContainer}>
+            <Text style={styles.resultTitle}>Búsqueda de usuarios con "{busqueda}"</Text>
+            <FlatList
+              data={resultados}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={renderUsuario}
+              contentContainerStyle={{ paddingBottom: 20 }}
+            />
+          </View>
+        )
+      ) : cargando ? (
         <ActivityIndicator size="large" color="#007AFF" style={{ marginTop: 40 }} />
       ) : (
         <ScrollView showsVerticalScrollIndicator={false}>
@@ -194,6 +246,26 @@ const styles = StyleSheet.create({
   headerRight: {
     flexDirection: "row",
     alignItems: "center",
+    position: "relative",
+  },
+  iconSearch: {
+    position: "absolute",
+    left: 10   ,
+    zIndex: 1,
+    color: "#888",
+    fontSize: 18,
+    top: Platform.OS === "ios" ? 12 : 10,
+  },
+  inputBuscar: {
+    backgroundColor: "#f2f2f2",
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingLeft: 32,
+    paddingRight: 12,
+    marginRight: 12,
+    fontSize: 14,
+    color: "#333",
+    width: 160,
   },
   fotoPerfil: {
     width: 40,
@@ -255,6 +327,24 @@ const styles = StyleSheet.create({
   likes: {
     fontSize: 14,
     color: "#333",
+  },
+  userRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderColor: "#eee",
+  },
+  resultContainer: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+  },
+  resultTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 8,
   },
 })
 

@@ -21,6 +21,8 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
   const [pestana, setPestana] = useState<"descripcion" | "itinerario" | "gastos">("descripcion");
   const [viaje, setViaje] = useState<any>(null);
   const { viajeId } = route.params;
+  const [estaPublicado, setEstaPublicado] = useState<boolean>(false);
+
 
   const cargarDatos = async () => {
     const token = await AsyncStorage.getItem("access_token");
@@ -28,6 +30,11 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
       headers: { Authorization: `Bearer ${token}` },
     });
     setViaje(respuestaViaje.data);
+
+    const estado = await api.get(`viaje_compartido/${viajeId}/esta_publicado/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setEstaPublicado(estado.data.publicado);
   };
 
   useEffect(() => {
@@ -164,9 +171,9 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
           </View>
           <Image source={require("../assets/imagenes/user.png")} style={estilos.fotoPerfil} />
         </View>
-
+  
         <Image source={{ uri: viaje.imagen_destacada }} style={estilos.imagenViaje} />
-
+  
         <View style={estilos.pestanas}>
           <TouchableOpacity onPress={() => setPestana("descripcion")}>
             <Text style={pestana === "descripcion" ? estilos.pestanaActiva : estilos.pestana}>Descripción</Text>
@@ -178,11 +185,79 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
             <Text style={pestana === "gastos" ? estilos.pestanaActiva : estilos.pestana}>Gastos</Text>
           </TouchableOpacity>
         </View>
-
+  
         {renderizarContenido()}
       </ScrollView>
+  
+      <View style={estilos.botonContenedor}>
+        <TouchableOpacity
+          style={[
+            estilos.botonPublicar,
+            estaPublicado ? estilos.botonGris : estilos.botonAzul,
+          ]}
+          onPress={() => {
+            Alert.alert(
+              estaPublicado ? "¿Dejar de publicar?" : "¿Publicar este viaje?",
+              estaPublicado
+                ? "Esto hará que el viaje ya no esté disponible públicamente."
+                : "Esto compartirá tu viaje con otros usuarios.",
+              [
+                { text: "Cancelar", style: "cancel" },
+                {
+                  text: estaPublicado ? "Dejar de publicar" : "Publicar",
+                  onPress: async () => {
+                    const token = await AsyncStorage.getItem("access_token");
+                    const headers = { Authorization: `Bearer ${token}` };
+                    try {
+                      if (estaPublicado) {
+                        await api.post(`viaje_compartido/${viajeId}/despublicar/`, {}, { headers });
+                      } else {
+                        Alert.prompt(
+                          "Comentario",
+                          "Añade un comentario para compartir este viaje (visible para otros usuarios):",
+                          [
+                            { text: "Cancelar", style: "cancel" },
+                            {
+                              text: "Publicar",
+                              onPress: async (comentario) => {
+                                if (!comentario || comentario.trim() === "") {
+                                  Alert.alert("Comentario requerido", "Debes añadir un comentario para publicar.");
+                                  return;
+                                }
+                        
+                                try {
+                                  await api.post(`viaje_compartido/${viajeId}/publicar/`, { comentario }, { headers });
+                                  cargarDatos();
+                                } catch (err) {
+                                  Alert.alert("Error", "No se pudo publicar el viaje.");
+                                  console.error("Error publicando:", err);
+                                }
+                              },
+                            },
+                          ],
+                          "plain-text"
+                        );
+                        
+                      }
+                      cargarDatos();
+                    } catch (err) {
+                      Alert.alert("Error", "No se pudo actualizar el estado del viaje.");
+                    }
+                  },
+                  style: "destructive",
+                },
+              ]
+            );
+          }}
+        >
+          <Text style={estilos.textoBoton}>
+            {estaPublicado ? "Dejar de publicar viaje" : "Publicar viaje"}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
-  );
+  )
+  
 };
 
 const estilos = StyleSheet.create({
@@ -209,6 +284,37 @@ const estilos = StyleSheet.create({
     color: "#007AFF",
     textDecorationLine: "underline",
   },
+
+  botonPublicado: {
+    backgroundColor: "#007AFF",
+  },
+  botonDespublicado: {
+    backgroundColor: "#FF3B30",
+  },
+  botonContenedor: {
+    padding: 20,
+    borderTopWidth: 1,
+    borderColor: "#eee",
+    backgroundColor: "#fff",
+  },
+  botonPublicar: {
+    paddingVertical: 12,
+    borderRadius: 25,
+    alignItems: "center",
+  },
+  botonAzul: {
+    backgroundColor: "#007AFF",
+  },
+  botonGris: {
+    backgroundColor: "#ccc",
+  },
+  textoBoton: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  
+  
   subtitulo: { fontSize: 18, fontWeight: "bold", marginHorizontal: 10, marginTop: 10 },
   textoInfo: { marginHorizontal: 10, color: "gray", fontStyle: "italic" },
   dia: { marginBottom: 20 },
