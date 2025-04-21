@@ -9,6 +9,10 @@ from django.contrib.auth import get_user_model
 from .models import ViajeCompartido, LikeViaje
 from .serializers import ViajeCompartidoSerializer
 from django.utils.timezone import now, timedelta
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework.views import APIView
 
 
 User = get_user_model()
@@ -93,6 +97,38 @@ class ActividadEnViajeViewSet(viewsets.ModelViewSet):
     queryset = ActividadEnViaje.objects.all()
     serializer_class = ActividadEnViajeSerializer
     permission_classes = [IsAuthenticated]
+
+class GoogleLoginView(APIView):
+    def post(self, request):
+        access_token = request.data.get('access_token')
+        if not access_token:
+            return Response({'error': 'Falta el token de Google'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Validar el token
+            idinfo = id_token.verify_oauth2_token(access_token, requests.Request())
+
+            email = idinfo.get('email')
+            username = idinfo.get('name') or email.split('@')[0]
+
+            if not email:
+                return Response({'error': 'Email no encontrado en el token'}, status=400)
+
+            # Crear o buscar el usuario
+            user, created = CustomUser.objects.get_or_create(email=email, defaults={'username': username})
+            if created:
+                user.set_unusable_password()
+                user.save()
+
+            # Generar los tokens
+            refresh = RefreshToken.for_user(user)
+            return Response({
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+            })
+
+        except Exception as e:
+            return Response({'error': str(e)}, status=400)
 
 class RelacionViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
