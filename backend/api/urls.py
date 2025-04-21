@@ -10,7 +10,8 @@ from .views import (
     HotelViewSet,
     ActividadEnViajeViewSet,
     RelacionViewSet,
-    ViajeCompartidoViewSet
+    ViajeCompartidoViewSet,
+    GoogleLoginView
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
@@ -45,4 +46,5 @@ urlpatterns = [
     path('api/dejar_de_seguir/<int:pk>/', relacion_destroy, name='dejar_de_seguir'),
     path('api/eliminar_seguidor/<int:pk>/', relacion_eliminar_seguidor, name='eliminar_seguidor'),
     path("api/usuarios/buscar/", buscar_usuarios, name="buscar_usuarios"),
+    path('api/google-login/', GoogleLoginView.as_view(), name='google-login')
 ]

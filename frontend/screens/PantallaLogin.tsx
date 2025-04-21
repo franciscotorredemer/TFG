@@ -1,28 +1,33 @@
-import React, { useState } from "react";
-import { 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  Alert, 
-  StyleSheet, 
-  Image, 
+import React, { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+  Image,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
-  Keyboard
+  Keyboard,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage"; 
-import axios from "axios";
-import { NavigationProp } from '@react-navigation/native';
-import { Ionicons } from "@expo/vector-icons"; 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { NavigationProp } from "@react-navigation/native";
+import { Ionicons } from "@expo/vector-icons";
 import api from "../services/api";
 
-// Importamos las imagenes de los logos e iconos
+import * as Google from "expo-auth-session/providers/google";
+import * as AuthSession from "expo-auth-session";
+import * as WebBrowser from "expo-web-browser";
+
+// Imagenes
 const logo = require("../assets/imagenes/logo.png");
 const googleIcon = require("../assets/imagenes/IconoGoogle.png");
 const backIcon = require("../assets/imagenes/back.png");
+
+WebBrowser.maybeCompleteAuthSession();
 
 interface PantallaLoginProps {
   navigation: NavigationProp<any>;
@@ -32,6 +37,48 @@ const PantallaLogin: React.FC<PantallaLoginProps> = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+
+  
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    androidClientId:
+      "301085730099-k5el9elc21h38moj9g8n91lja5i1517h.apps.googleusercontent.com",
+    iosClientId:
+      "301085730099-9bfh9sa3jotn6fu2jlrfdihmvo4aaarl.apps.googleusercontent.com",
+    redirectUri: AuthSession.makeRedirectUri({
+      native: "appviajes://redirect", // 👈 esto es suficiente
+    }),
+  });
+  
+  
+  
+
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { authentication } = response;
+      if (authentication?.accessToken) {
+        enviarTokenAGoogleLogin(authentication.accessToken);
+      }
+    }
+  }, [response]);
+
+  const enviarTokenAGoogleLogin = async (accessToken: string) => {
+    try {
+      const res = await api.post("google-login/", {
+        access_token: accessToken,
+      });
+
+      await AsyncStorage.setItem("access_token", res.data.access);
+      await AsyncStorage.setItem("refresh_token", res.data.refresh);
+
+      Alert.alert(
+        "Éxito",
+        res.data.created ? "Cuenta creada con Google" : "Sesión iniciada"
+      );
+      navigation.navigate("Tabs");
+    } catch (err) {
+      Alert.alert("Error", "Falló el login con Google");
+    }
+  };
 
   const handleLogin = async () => {
     try {
@@ -52,26 +99,26 @@ const PantallaLogin: React.FC<PantallaLoginProps> = ({ navigation }) => {
   };
 
   return (
-    <KeyboardAvoidingView 
+    <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       style={styles.keyboardContainer}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           <View style={styles.container}>
-            {/* Botón para volver a la pantalla anterior */}
-            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            {/* Botón para volver */}
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
               <Image source={backIcon} style={styles.backIcon} />
             </TouchableOpacity>
-          
-            {/* Logo de la aplicación */}
+
+            {/* Logo */}
             <Image source={logo} style={styles.logo} />
-
-
-
             <Text style={styles.title}>¡Bienvenido!</Text>
 
-            {/* Campo de nombre de usuario o email */}
+            {/* Usuario */}
             <Text style={styles.parametro}>Email/usuario:</Text>
             <TextInput
               style={styles.input}
@@ -81,7 +128,7 @@ const PantallaLogin: React.FC<PantallaLoginProps> = ({ navigation }) => {
               onChangeText={setUsername}
             />
 
-            {/* Campo de contraseña */}
+            {/* Contraseña */}
             <Text style={styles.parametro}>Contraseña:</Text>
             <View style={styles.passwordContainer}>
               <TextInput
@@ -92,14 +139,21 @@ const PantallaLogin: React.FC<PantallaLoginProps> = ({ navigation }) => {
                 value={password}
                 onChangeText={setPassword}
               />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
-                <Ionicons name={showPassword ? "eye-off" : "eye"} size={24} color="#347CAF" />
+              <TouchableOpacity
+                onPress={() => setShowPassword(!showPassword)}
+              >
+                <Ionicons
+                  name={showPassword ? "eye-off" : "eye"}
+                  size={24}
+                  color="#347CAF"
+                />
               </TouchableOpacity>
             </View>
 
-            {/* Recuperar la contraseña */}
             <TouchableOpacity>
-              <Text style={styles.forgotPassword}>¿Te has olvidado la contraseña?</Text>
+              <Text style={styles.forgotPassword}>
+                ¿Te has olvidado la contraseña?
+              </Text>
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
@@ -108,17 +162,20 @@ const PantallaLogin: React.FC<PantallaLoginProps> = ({ navigation }) => {
 
             <Text style={styles.texto_o}>o</Text>
 
-            {/* Botón de  inciar sesión con Google */}
-            <TouchableOpacity style={styles.googleButton}>
+            {/* Google login */}
+            <TouchableOpacity
+              style={styles.googleButton}
+              onPress={() => promptAsync()}
+              disabled={!request}
+            >
               <Image source={googleIcon} style={styles.googleIcon} />
               <Text style={styles.texto_google}>Sign in with Google</Text>
             </TouchableOpacity>
-            
-            {/* Para registrarse */}
+
             <Text style={styles.textoregistro}>
               ¿No tienes cuenta?{" "}
-              <Text 
-                style={styles.LinkRegistro} 
+              <Text
+                style={styles.LinkRegistro}
                 onPress={() => navigation.navigate("Registro")}
               >
                 Regístrate!
@@ -140,13 +197,13 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: "center", // centrar verticalmente
-    alignItems: "center", // centrar horizontalmente
+    justifyContent: "center",
+    alignItems: "center",
     padding: 20,
     backgroundColor: "#fff",
   },
   backButton: {
-    position: "absolute", // para que este por encima de los demás elementos
+    position: "absolute",
     top: 50,
     left: 20,
     zIndex: 10,
@@ -158,7 +215,7 @@ const styles = StyleSheet.create({
   logo: {
     width: 300,
     height: 300,
-    resizeMode: "contain", // para que se ajuste al tamaño correctamente
+    resizeMode: "contain",
     marginBottom: 20,
   },
   title: {
@@ -170,7 +227,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   parametro: {
-    alignSelf: "flex-start", // para que estén a la izquierda
+    alignSelf: "flex-start",
     fontSize: 16,
     color: "#347CAF",
     fontFamily: "SourceHanSansSC",
@@ -179,7 +236,7 @@ const styles = StyleSheet.create({
   input: {
     width: "100%",
     height: 40,
-    borderBottomWidth: 1, // línea de abajo
+    borderBottomWidth: 1,
     borderBottomColor: "#347CAF",
     fontSize: 16,
     fontFamily: "SourceHanSansSC",
@@ -187,9 +244,9 @@ const styles = StyleSheet.create({
   },
   passwordContainer: {
     width: "100%",
-    flexDirection: "row", // para que el icono esté al lado del input
-    alignItems: "center", // aseguramos que estén alineados
-    borderBottomWidth: 1, 
+    flexDirection: "row",
+    alignItems: "center",
+    borderBottomWidth: 1,
     borderBottomColor: "#347CAF",
     marginBottom: 15,
   },

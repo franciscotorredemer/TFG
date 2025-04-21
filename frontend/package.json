@@ -32,7 +32,9 @@
     "react-native-screens": "~4.4.0",
     "react-native-vector-icons": "^10.2.0",
     "react-native-web": "^0.19.13",
-    "expo-file-system": "~18.0.12"
+    "expo-file-system": "~18.0.12",
+    "expo-auth-session": "~6.0.3",
+    "expo-web-browser": "~14.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
