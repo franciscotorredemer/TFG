@@ -100,35 +100,44 @@ class ActividadEnViajeViewSet(viewsets.ModelViewSet):
 
 class GoogleLoginView(APIView):
     def post(self, request):
-        access_token = request.data.get('access_token')
+        access_token = request.data.get("access_token")
+
         if not access_token:
-            return Response({'error': 'Falta el token de Google'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Falta el token de Google"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            # Validar el token
             idinfo = id_token.verify_oauth2_token(access_token, requests.Request())
 
-            email = idinfo.get('email')
-            username = idinfo.get('name') or email.split('@')[0]
+            email = idinfo.get("email")
+            username = idinfo.get("name") or email.split("@")[0]
+            picture = idinfo.get("picture")
 
             if not email:
-                return Response({'error': 'Email no encontrado en el token'}, status=400)
+                return Response({"error": "Email no encontrado en el token"}, status=400)
 
-            # Crear o buscar el usuario
-            user, created = CustomUser.objects.get_or_create(email=email, defaults={'username': username})
+            user, created = CustomUser.objects.get_or_create(email=email, defaults={
+                "username": username,
+                "foto_perfil": picture,  # guarda la imagen si viene
+            })
+
             if created:
                 user.set_unusable_password()
                 user.save()
 
-            # Generar los tokens
             refresh = RefreshToken.for_user(user)
+
             return Response({
-                'access': str(refresh.access_token),
-                'refresh': str(refresh),
+                "access": str(refresh.access_token),
+                "refresh": str(refresh),
+                "user": CustomUserSerializer(user).data
             })
 
+        except ValueError as e:
+            return Response({"error": f"Token no válido: {str(e)}"}, status=400)
+
         except Exception as e:
-            return Response({'error': str(e)}, status=400)
+            return Response({"error": str(e)}, status=500)
+
 
 class RelacionViewSet(viewsets.ViewSet):
     permission_classes = [IsAuthenticated]
