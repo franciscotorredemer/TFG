@@ -57,18 +57,19 @@ const PantallaLogin: React.FC<PantallaLoginProps> = ({ navigation }) => {
   
   
 
-useEffect(() => {
-  console.log("🔐 Google response:", response);
-
-  if (response?.type === "success") {
-    const { authentication } = response;
-    console.log("✅ accessToken:", authentication?.accessToken);
-
-    if (authentication?.accessToken) {
-      enviarTokenAGoogleLogin(authentication.accessToken);
+  useEffect(() => {
+    console.log("🔐 Google response:", response);
+  
+    if (response?.type === "success") {
+      const idToken = response.authentication?.idToken;
+      console.log("✅ idToken:", idToken);
+  
+      if (idToken) {
+        enviarTokenAGoogleLogin(idToken);
+      }
     }
-  }
-}, [response]);
+  }, [response]);
+  
 
   const enviarTokenAGoogleLogin = async (accessToken: string) => {
     try {

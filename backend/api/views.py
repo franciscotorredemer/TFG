@@ -38,8 +38,15 @@ def obtener_perfil(request):
     if request.method == 'GET':
         serializer = CustomUserSerializer(usuario)
         return Response(serializer.data)
+
     elif request.method == "PUT":
         data = request.data.copy()
+
+        # Proteger campos opcionales (bio, ubicacion, foto_perfil)
+        for campo in ['bio', 'ubicacion', 'foto_perfil']:
+            if campo not in data:
+                data[campo] = getattr(usuario, campo, "") or ""
+
         if "password" in data and data["password"]:
             data["password"] = make_password(data["password"])
 
@@ -48,9 +55,11 @@ def obtener_perfil(request):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     elif request.method == "DELETE":
         usuario.delete()
         return Response({"mensaje": "Cuenta eliminada correctamente"}, status=204)
+
 
 class ViajeViewSet(viewsets.ModelViewSet):
     queryset = Viaje.objects.all()
