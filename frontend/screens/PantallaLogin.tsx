@@ -21,6 +21,7 @@ import api from "../services/api";
 import * as Google from "expo-auth-session/providers/google";
 import * as AuthSession from "expo-auth-session";
 import * as WebBrowser from "expo-web-browser";
+import Constants from "expo-constants";
 
 // Imagenes
 const logo = require("../assets/imagenes/logo.png");
@@ -38,28 +39,36 @@ const PantallaLogin: React.FC<PantallaLoginProps> = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const isProd = Constants.appOwnership !== "expo";
+
+
+  const redirectUri = AuthSession.makeRedirectUri({
+    native: "frontend://redirect",
+  });
+  
+  console.log("🔁 redirectUri (nativo):", redirectUri);
   
   const [request, response, promptAsync] = Google.useAuthRequest({
-    androidClientId:
-      "301085730099-k5el9elc21h38moj9g8n91lja5i1517h.apps.googleusercontent.com",
-    iosClientId:
-      "301085730099-9bfh9sa3jotn6fu2jlrfdihmvo4aaarl.apps.googleusercontent.com",
-    redirectUri: AuthSession.makeRedirectUri({
-      native: "appviajes://redirect", // 👈 esto es suficiente
-    }),
+    androidClientId: "301085730099-k5el9elc21h38moj9g8n91lja5i1517h.apps.googleusercontent.com",
+    iosClientId: "301085730099-9bfh9sa3jotn6fu2jlrfdihmvo4aaarl.apps.googleusercontent.com",
   });
   
   
   
+  
 
-  useEffect(() => {
-    if (response?.type === "success") {
-      const { authentication } = response;
-      if (authentication?.accessToken) {
-        enviarTokenAGoogleLogin(authentication.accessToken);
-      }
+useEffect(() => {
+  console.log("🔐 Google response:", response);
+
+  if (response?.type === "success") {
+    const { authentication } = response;
+    console.log("✅ accessToken:", authentication?.accessToken);
+
+    if (authentication?.accessToken) {
+      enviarTokenAGoogleLogin(authentication.accessToken);
     }
-  }, [response]);
+  }
+}, [response]);
 
   const enviarTokenAGoogleLogin = async (accessToken: string) => {
     try {
