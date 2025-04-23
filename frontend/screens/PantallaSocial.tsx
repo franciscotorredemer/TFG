@@ -76,17 +76,37 @@ const PantallaSocial = () => {
     }
   }
 
-  const cargarPerfil = async () => {
+  const verPantallaPerfilUsuario = async (userId: number) => {
     try {
       const token = await AsyncStorage.getItem("access_token")
       const res = await api.get("perfil/", {
         headers: { Authorization: `Bearer ${token}` },
       })
-      setFotoUsuario(res.data.foto_perfil || null)
+      if (res.data.id === userId) {
+        navigation.navigate("Perfil")
+      } else {
+        navigation.navigate("PantallaPerfilUsuario", { id: userId })
+      }
     } catch (error) {
-      console.error("Error al cargar perfil del usuario:", error)
+      console.error("Error comprobando perfil del usuario:", error)
     }
   }
+  
+
+const [currentUserId, setCurrentUserId] = useState<number | null>(null)
+
+const cargarPerfil = async () => {
+  try {
+    const token = await AsyncStorage.getItem("access_token")
+    const res = await api.get("perfil/", {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    setFotoUsuario(res.data.foto_perfil || null)
+    setCurrentUserId(res.data.id)
+  } catch (error) {
+    console.error("Error al cargar perfil del usuario:", error)
+  }
+}
 
   const toggleLike = async (id: number, liked: boolean) => {
     try {
@@ -121,10 +141,10 @@ const PantallaSocial = () => {
   }
 
   const renderUsuario = ({ item }) => (
-    <View style={styles.userRow}>
+    <TouchableOpacity style={styles.userRow} onPress={() => verPantallaPerfilUsuario(item.id)}>
       <Image source={item.foto_perfil ? { uri: item.foto_perfil } : avatarDefault} style={styles.avatar} />
       <Text style={styles.username}>{item.username}</Text>
-    </View>
+    </TouchableOpacity>
   )
 
   const renderViaje = (viaje) => {
@@ -140,21 +160,34 @@ const PantallaSocial = () => {
         <Text style={styles.titulo}>{viaje.viaje.nombre}</Text>
         <Text style={styles.descripcion} numberOfLines={2}>{viaje.comentario}</Text>
         <View style={styles.footer}>
-          <Image source={autor.foto_perfil ? { uri: autor.foto_perfil } : avatarDefault} style={styles.avatar} />
-          <Text style={styles.username}>{autor.username || ""}</Text>
-          <TouchableOpacity
-            style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 'auto' }}
-            onPress={() => toggleLike(viaje.id, viaje.ya_dado_like)}
+        <TouchableOpacity onPress={() => verPantallaPerfilUsuario(viaje.publicado_por)}>
+        <Image source={autor.foto_perfil ? { uri: autor.foto_perfil } : avatarDefault} style={styles.avatar} />
+        </TouchableOpacity>
+        <TouchableOpacity
+            onPress={() => {
+              if (autor.id === currentUserId) {
+                navigation.navigate("Perfil")
+              } else {
+                navigation.navigate("PantallaPerfilUsuario", { id: autor.id })
+              }
+            }}
           >
-            <Text style={styles.likes}>{viaje.likes_count}</Text>
-            <Ionicons
-              name={viaje.ya_dado_like ? "heart" : "heart-outline"}
-              size={22}
-              color="red"
-              style={{ marginLeft: 6 }}
-            />
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.username}>{autor.username || ""}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={{ flexDirection: 'row', alignItems: 'center', marginLeft: 'auto' }}
+          onPress={() => toggleLike(viaje.id, viaje.ya_dado_like)}
+        >
+          <Text style={styles.likes}>{viaje.likes_count}</Text>
+          <Ionicons
+            name={viaje.ya_dado_like ? "heart" : "heart-outline"}
+            size={22}
+            color="red"
+            style={{ marginLeft: 6 }}
+          />
+        </TouchableOpacity>
+      </View>
       </TouchableOpacity>
     )
   }

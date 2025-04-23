@@ -203,9 +203,7 @@ const ListaUsuarios = () => {
   }
 
   const viewProfile = (usuario: Usuario) => {
-    // Aquí puedes navegar a la pantalla de perfil del usuario 
-    Alert.alert("Ver perfil", `Ver perfil de ${usuario.username}`)
-    // navigation.navigate("PerfilUsuario", { userId: usuario.id })
+    navigation.navigate("PantallaPerfilUsuario", { id: usuario.id })
   }
 
   useEffect(() => {
