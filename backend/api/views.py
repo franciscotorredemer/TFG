@@ -220,9 +220,15 @@ class ViajeCompartidoViewSet(viewsets.ModelViewSet):
     queryset = ViajeCompartido.objects.all()
     serializer_class = ViajeCompartidoSerializer
 
+    def get_queryset(self):
+        queryset = ViajeCompartido.objects.all()
+        publicado_por = self.request.query_params.get("publicado_por")
+        if publicado_por:
+            queryset = queryset.filter(publicado_por_id=publicado_por)
+        return queryset
 
     def list(self, request):
-        viajes = ViajeCompartido.objects.all()
+        viajes = self.get_queryset()  
         serializer = ViajeCompartidoSerializer(viajes, many=True, context={"request": request})
         return Response(serializer.data)
 
@@ -290,6 +296,16 @@ class ViajeCompartidoViewSet(viewsets.ModelViewSet):
     def esta_publicado(self, request, pk=None):
      publicado = ViajeCompartido.objects.filter(viaje_id=pk).exists()
      return Response({"publicado": publicado})
+    
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def estado_relacion_mutua(request, pk):
+     yo_sigo = Relacion.objects.filter(seguidor=request.user, seguido_id=pk).exists()
+     me_sigue = Relacion.objects.filter(seguidor_id=pk, seguido=request.user).exists()
+     return Response({
+        "yo_sigo": yo_sigo,
+        "me_sigue": me_sigue
+     })
     
 
     
