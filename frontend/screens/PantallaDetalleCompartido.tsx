@@ -27,6 +27,7 @@ export const PantallaDetalleCompartido = () => {
   const [autor, setAutor] = useState<any>(null)
   const [cargando, setCargando] = useState(true)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [usuarioId, setUsuarioId] = useState<number | null>(null)
 
   const cargarDatos = async () => {
     setCargando(true)
@@ -39,6 +40,9 @@ export const PantallaDetalleCompartido = () => {
   
       const autorInfo = await api.get(`relacion/${res.data.publicado_por}/info/`, { headers })
       const estado = await api.get(`relacion/${res.data.publicado_por}/estado/`, { headers })
+      const perfil = await api.get("perfil/", { headers }) // <--- Aquí
+  
+      setUsuarioId(perfil.data.id) // <--- Guarda tu ID
   
       setAutor({
         ...autorInfo.data,
@@ -50,6 +54,24 @@ export const PantallaDetalleCompartido = () => {
       setCargando(false)
     }
   }
+  
+
+  const verPerfilAutor = async () => {
+    try {
+      const token = await AsyncStorage.getItem("access_token")
+      const res = await api.get("perfil/", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.data.id === autor.id) {
+        navigation.navigate("Perfil")
+      } else {
+        navigation.navigate("PantallaPerfilUsuario", { id: autor.id })
+      }
+    } catch (error) {
+      console.error("Error al navegar al perfil del autor:", error)
+    }
+  }
+  
   
 
   const toggleLike = async () => {
@@ -139,32 +161,39 @@ export const PantallaDetalleCompartido = () => {
       </View>
 
       <View style={styles.userSection}>
+      <TouchableOpacity onPress={verPerfilAutor}>
         <Image source={autor.foto_perfil ? { uri: autor.foto_perfil } : avatarDefault} style={styles.avatar} />
+      </TouchableOpacity>
         <View>
-          <Text style={styles.username}>{autor.username}</Text>
-          <TouchableOpacity
-            style={[styles.followButton, autor.siguiendo ? styles.followingButton : styles.notFollowingButton]}
-            onPress={toggleSeguir}
-            disabled={isProcessing}
-          >
-            {isProcessing ? (
-              <ActivityIndicator size="small" color={autor.siguiendo ? "#fff" : "#007AFF"} />
-            ) : (
-              <>
-                {autor.siguiendo && (
-                  <Ionicons name="checkmark" size={16} color="#fff" style={styles.buttonIcon} />
-                )}
-                <Text
-                  style={[
-                    styles.followButtonText,
-                    autor.siguiendo ? styles.followingButtonText : styles.notFollowingButtonText,
-                  ]}
-                >
-                  {autor.siguiendo ? "Siguiendo" : "Seguir"}
-                </Text>
-              </>
-            )}
-          </TouchableOpacity>
+        <TouchableOpacity onPress={verPerfilAutor}>
+         <Text style={styles.username}>{autor.username}</Text>
+        </TouchableOpacity>
+        {usuarioId !== autor.id && (
+        <TouchableOpacity
+          style={[styles.followButton, autor.siguiendo ? styles.followingButton : styles.notFollowingButton]}
+          onPress={toggleSeguir}
+          disabled={isProcessing}
+        >
+          {isProcessing ? (
+            <ActivityIndicator size="small" color={autor.siguiendo ? "#fff" : "#007AFF"} />
+          ) : (
+            <>
+              {autor.siguiendo && (
+                <Ionicons name="checkmark" size={16} color="#fff" style={styles.buttonIcon} />
+              )}
+              <Text
+                style={[
+                  styles.followButtonText,
+                  autor.siguiendo ? styles.followingButtonText : styles.notFollowingButtonText,
+                ]}
+              >
+                {autor.siguiendo ? "Siguiendo" : "Seguir"}
+              </Text>
+            </>
+          )}
+        </TouchableOpacity>
+      )}
+
         </View>
       </View>
 
