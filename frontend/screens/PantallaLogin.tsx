@@ -160,11 +160,13 @@ const PantallaLogin: React.FC<PantallaLoginProps> = ({ navigation }) => {
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate("PantallaEnviarCodigo")}>
               <Text style={styles.forgotPassword}>
                 ¿Te has olvidado la contraseña?
               </Text>
             </TouchableOpacity>
+  
+              {/* Botón de inicio de sesión */} 
 
             <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
               <Text style={styles.Textologin}>Log in</Text>
