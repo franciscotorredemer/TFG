@@ -13,6 +13,13 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
+import random
+from django.core.mail import EmailMultiAlternatives
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+
+reset_codes = {}  
 
 
 User = get_user_model()
@@ -307,6 +314,81 @@ def estado_relacion_mutua(request, pk):
         "me_sigue": me_sigue
      })
     
+
+
+
+class PasswordResetRequestView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        email = request.data.get('email')
+        if not email:
+            return Response({'error': 'Email requerido.'}, status=400)
+
+        from .models import CustomUser
+        try:
+            user = CustomUser.objects.get(email=email)
+        except CustomUser.DoesNotExist:
+            # CAMBIADO: antes respondía igual, ahora devuelve error
+            return Response({'error': 'Correo no encontrado.'}, status=404)
+
+        code = str(random.randint(100000, 999999))
+        reset_codes[email] = {
+            "code": code,
+            "user_id": user.id,
+        }
+
+        subject = "Tu código para recuperar contraseña"
+        from_email = 'no-reply@tuapp.com'
+        to_email = [user.email]
+
+        html_content = f"""
+        <html>
+        <body>
+            <h2>Recuperación de contraseña</h2>
+            <p>Tu código es:</p>
+            <h1>{code}</h1>
+            <p>Introduce este código en la app para restablecer tu contraseña.</p>
+        </body>
+        </html>
+        """
+
+        msg = EmailMultiAlternatives(subject, '', from_email, to_email)
+        msg.attach_alternative(html_content, "text/html")
+        msg.send()
+
+        return Response({'mensaje': 'Se ha enviado el código de recuperación.'})
+
+    
+
+class PasswordResetConfirmView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        email = request.data.get('email')
+        code = request.data.get('code')
+        new_password = request.data.get('password')
+
+        if not all([email, code, new_password]):
+            return Response({'error': 'Todos los campos son requeridos.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        data = reset_codes.get(email)
+        if not data:
+            return Response({'error': 'Código inválido o expirado.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if data['code'] != code:
+            return Response({'error': 'Código incorrecto.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        from .models import CustomUser
+        try:
+            user = CustomUser.objects.get(id=data['user_id'])
+            user.set_password(new_password)
+            user.save()
+            del reset_codes[email]
+            return Response({'mensaje': 'Contraseña actualizada correctamente.'})
+        except CustomUser.DoesNotExist:
+            return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+
 
     
 

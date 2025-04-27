@@ -14,7 +14,6 @@ class CustomUserSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'password', 'foto_perfil', 'bio', 'ubicacion']
         extra_kwargs = {
             'password': {'write_only': True},
-            'email': {'read_only': True},  # opcional si no quieres que se modifique
         }
 
 class ActividadConFechaSerializer(serializers.ModelSerializer):
