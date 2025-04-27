@@ -15,6 +15,7 @@ from .views import (
     estado_relacion_mutua,
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from .views import PasswordResetRequestView, PasswordResetConfirmView
 
 router = DefaultRouter()
 router.register(r'actividades', ActividadViewSet)
@@ -49,5 +50,7 @@ urlpatterns = [
     path("api/usuarios/buscar/", buscar_usuarios, name="buscar_usuarios"),
     path('api/google-login/', GoogleLoginView.as_view(), name='google-login'),
     path('api/relacion/estado_mutuo/<int:pk>/', estado_relacion_mutua, name='estado_relacion_mutua'),
+    path('api/password_reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
+    path('api/password_reset_confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
 
 ]
