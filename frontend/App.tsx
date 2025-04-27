@@ -14,6 +14,8 @@ import PantallaPerfil from "./screens/PantallaPerfil";
 import ListaUsuarios from "./screens/ListaUsuarios";
 import { PantallaDetalleCompartido } from "./screens/PantallaDetalleCompartido";
 import PantallaPerfilUsuario from "./screens/PantallaPerfilUsuario";
+import PantallaEnviarCodigo from "./screens/PantallaEnviarCodigo";
+import PantallaConfirmarCodigo from "./screens/PantallaConfirmarCodigo";
 
 export type RootStackParamList = {
   Inicio: undefined;
@@ -46,6 +48,8 @@ const App: React.FC = () => {
         <Stack.Screen name="ListaUsuarios" component={ListaUsuarios} />
         <Stack.Screen name="DetalleCompartido" component={PantallaDetalleCompartido} />
         <Stack.Screen name="PantallaPerfilUsuario" component={PantallaPerfilUsuario} />
+        <Stack.Screen name="PantallaEnviarCodigo" component={PantallaEnviarCodigo} />
+        <Stack.Screen name="PantallaConfirmarCodigo" component={PantallaConfirmarCodigo} />
       </Stack.Navigator>
     </NavigationContainer>
   );
