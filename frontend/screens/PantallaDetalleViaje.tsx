@@ -73,20 +73,23 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
       return (
         <View>
           <Text style={estilos.subtitulo}>Mi hotel/hoteles:</Text>
-          {viaje?.hoteles?.length === 0 ? (
+          {viaje?.estancias?.length === 0 ? (
             <Text style={estilos.textoInfo}>No hay hoteles registrados</Text>
           ) : (
-            viaje?.hoteles?.map((hotel: any) => (
-              <View key={hotel.id} style={estilos.cardHorizontal}>
-                <Image source={{ uri: hotel.imagen }} style={estilos.cardImagen} />
+            viaje.estancias.map((estancia: any) => (
+              <View key={estancia.id} style={estilos.cardHorizontal}>
+                <Image source={{ uri: estancia.hotel.imagen }} style={estilos.cardImagen} />
                 <View style={{ flex: 1 }}>
-                  <Text style={estilos.cardTitulo}>{hotel.nombre}</Text>
-                  <Text style={estilos.cardTexto}>{hotel.descripcion}</Text>
-                  <Text style={estilos.cardTexto}>{hotel.ciudad}, {hotel.pais}</Text>
+                  <Text style={estilos.cardTitulo}>{estancia.hotel.nombre}</Text>
+                  <Text style={estilos.cardTexto}>{estancia.hotel.descripcion}</Text>
+                  <Text style={estilos.cardTexto}>
+                    {estancia.hotel.ciudad}, {estancia.hotel.pais}
+                  </Text>
+                  <Text style={estilos.cardTexto}>
+                    {new Date(estancia.fecha_inicio).toLocaleDateString()} -{" "}
+                    {new Date(estancia.fecha_fin).toLocaleDateString()}
+                  </Text>
                 </View>
-                <TouchableOpacity onPress={() => confirmarEliminacion("hotel", hotel.id)}>
-                  <FontAwesome name="trash" size={20} color="red" />
-                </TouchableOpacity>
               </View>
             ))
           )}
@@ -134,7 +137,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                       <View style={{ flex: 1 }}>
                         <Text style={estilos.cardTitulo}>{actividad.nombre}</Text>
                         <Text style={estilos.cardTexto}>{actividad.ciudad}, España</Text>
-                        <Text style={estilos.cardTexto}>{actividad.ubicacion}</Text>
+                        <Text style={estilos.cardTexto}>Coordenadas: {actividad.latitud}, {actividad.longitud}</Text>
                         <Text style={estilos.mapa}>Marcar en mapa</Text>
                       </View>
                       <TouchableOpacity onPress={() => confirmarEliminacion("actividad", actividad.id)}>
