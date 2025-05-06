@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Actividad, CustomUser, Viaje, Hotel, ActividadEnViaje, Relacion, ViajeCompartido, LikeViaje
+from .models import Actividad, CustomUser, Viaje, Hotel, ActividadEnViaje, Relacion, ViajeCompartido, LikeViaje, EstanciaHotel
 
 class ActividadSerializer(serializers.ModelSerializer):
     class Meta:
@@ -33,9 +33,16 @@ class HotelSerializer(serializers.ModelSerializer):
         model = Hotel
         fields = '__all__'
 
+class EstanciaHotelSerializer(serializers.ModelSerializer):
+    hotel = HotelSerializer()
+
+    class Meta:
+        model = EstanciaHotel
+        fields = ['id', 'hotel', 'fecha_inicio', 'fecha_fin']
+
 class ViajeSerializer(serializers.ModelSerializer):
     actividades = serializers.SerializerMethodField()
-    hoteles = HotelSerializer(many=True, read_only=True)
+    estancias = EstanciaHotelSerializer(many=True, read_only=True)
 
     class Meta:
         model = Viaje
@@ -47,8 +54,9 @@ class ViajeSerializer(serializers.ModelSerializer):
             'fecha_inicio',
             'fecha_fin',
             'imagen_destacada',
+            'notas',
             'actividades',
-            'hoteles',
+            'estancias'
         ]
 
     def get_actividades(self, obj):
@@ -78,4 +86,7 @@ class ViajeCompartidoSerializer(serializers.ModelSerializer):
     def get_ya_dado_like(self, obj):
         user = self.context.get("request").user
         return obj.likes.filter(usuario=user).exists()
+    
+
+
 

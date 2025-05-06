@@ -1,12 +1,12 @@
 from rest_framework import viewsets, generics, status
 from .models import Actividad, CustomUser, Viaje, Hotel, ActividadEnViaje, Relacion
-from .serializers import ActividadSerializer, CustomUserSerializer, ViajeSerializer, HotelSerializer, ActividadEnViajeSerializer, RelacionSerializer
+from .serializers import ActividadSerializer, CustomUserSerializer, ViajeSerializer, HotelSerializer, ActividadEnViajeSerializer, RelacionSerializer, ViajeCompartidoSerializer, EstanciaHotelSerializer
 from django.contrib.auth.hashers import make_password
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from .models import ViajeCompartido, LikeViaje
+from .models import ViajeCompartido, LikeViaje, EstanciaHotel
 from .serializers import ViajeCompartidoSerializer
 from django.utils.timezone import now, timedelta
 from google.oauth2 import id_token
@@ -388,6 +388,16 @@ class PasswordResetConfirmView(APIView):
             return Response({'mensaje': 'Contraseña actualizada correctamente.'})
         except CustomUser.DoesNotExist:
             return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
+        
+
+class EstanciaHotelViewSet(viewsets.ModelViewSet):
+    queryset = EstanciaHotel.objects.all()
+    serializer_class = EstanciaHotelSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return EstanciaHotel.objects.filter(viaje__usuario=self.request.user)
+
 
 
     

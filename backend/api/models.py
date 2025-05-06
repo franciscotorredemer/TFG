@@ -8,11 +8,11 @@ class Actividad(models.Model):
     descripcion = models.TextField()
     url_imagen = models.URLField()
     ciudad = models.CharField(max_length=255)
-    ubicacion = models.CharField(max_length=255)
-    
+    latitud = models.FloatField(null=True, blank=True)
+    longitud = models.FloatField(null=True, blank=True)
 
     def __str__(self):
-        return f"{self.nombre} - {self.fecha_realizacion}"
+        return self.nombre
 
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
@@ -32,6 +32,7 @@ class Viaje(models.Model):
     usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name="viajes")
     actividades = models.ManyToManyField(Actividad, through='ActividadEnViaje', related_name="viajes")
     imagen_destacada = models.URLField(blank=True, null=True)
+    notas = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.nombre} - {self.ciudad}"
@@ -51,9 +52,9 @@ class Hotel(models.Model):
     descripcion = models.TextField()
     ciudad = models.CharField(max_length=255)
     pais = models.CharField(max_length=255)
-    ubicacion = models.CharField(max_length=255)
+    latitud = models.FloatField(null=True, blank=True)
+    longitud = models.FloatField(null=True, blank=True)
     imagen = models.URLField()
-    viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="hoteles")
 
     def __str__(self):
         return f"{self.nombre} ({self.ciudad}, {self.pais})"
@@ -91,5 +92,15 @@ class LikeViaje(models.Model):
 
     class Meta:
         unique_together = ('usuario', 'viaje_compartido')
+
+class EstanciaHotel(models.Model):
+    viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="estancias")
+    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE)
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
+
+    def __str__(self):
+        return f"{self.hotel.nombre} en {self.viaje.nombre} ({self.fecha_inicio} - {self.fecha_fin})"
+
 
 
