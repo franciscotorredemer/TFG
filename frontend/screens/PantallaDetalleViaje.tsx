@@ -352,16 +352,14 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
   
         {renderizarContenido()}
         <BuscarActividadesHoteles
-            visible={modalVisible}
-            onClose={() => setModalVisible(false)}
-            modo={modoBusqueda}
-            viaje={viaje}
-            fechaSeleccionada={fechaSeleccionada}
-            onAñadido={() => {
-              setModalVisible(false);
-              cargarDatos();
-            }}
-            />
+          visible={modalVisible}
+          onClose={() => setModalVisible(false)}
+          tipo={modoBusqueda} 
+          fechaLimiteInicio={viaje?.fecha_inicio}
+          fechaLimiteFin={viaje?.fecha_fin}
+          fechaActividad={fechaSeleccionada}
+          onSelect={manejarSeleccionLugar}
+        />
       </ScrollView>
   
       <View style={estilos.botonContenedor}>
