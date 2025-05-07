@@ -50,7 +50,7 @@ class ActividadEnViaje(models.Model):
 class Hotel(models.Model):
     nombre = models.CharField(max_length=255)
     descripcion = models.TextField()
-    ciudad = models.CharField(max_length=255)
+    direccion = models.CharField(max_length=255)
     pais = models.CharField(max_length=255)
     latitud = models.FloatField(null=True, blank=True)
     longitud = models.FloatField(null=True, blank=True)
