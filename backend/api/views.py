@@ -416,7 +416,8 @@ def buscar_actividades(request):
     }
 
     try:
-        r = requests.get(url, params=params)
+        headers = {"User-Agent": "Mozilla/5.0"}
+        r = requests.get(url, params=params, headers=headers)
         data = r.json()
 
         resultados = []
@@ -434,6 +435,7 @@ def buscar_actividades(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
     
 
 
@@ -485,13 +487,13 @@ def buscar_hoteles(request):
     url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
     params = {
         "query": query,
-        
         "language": "es",
         "key": settings.GOOGLE_API_KEY,
     }
 
     try:
-        r = requests.get(url, params=params)
+        headers = {"User-Agent": "Mozilla/5.0"}
+        r = requests.get(url, params=params, headers=headers)
         data = r.json()
 
         resultados = []
@@ -509,6 +511,7 @@ def buscar_hoteles(request):
 
     except Exception as e:
         return Response({"error": str(e)}, status=500)
+
 
     
 
