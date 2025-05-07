@@ -13,11 +13,13 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
-import random
+import random, requests
 from django.core.mail import EmailMultiAlternatives
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from django.conf import settings
+from datetime import date
 
 reset_codes = {}  
 
@@ -397,6 +399,164 @@ class EstanciaHotelViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         return EstanciaHotel.objects.filter(viaje__usuario=self.request.user)
+    
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def buscar_actividades(request):
+    query = request.GET.get("q", "")
+    if not query:
+        return Response({"error": "Falta el término de búsqueda"}, status=400)
+
+    url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+    params = {
+        "query": query,
+        "language": "es",
+        "key": settings.GOOGLE_API_KEY,
+    }
+
+    try:
+        r = requests.get(url, params=params)
+        data = r.json()
+
+        resultados = []
+        for lugar in data.get("results", []):
+            resultados.append({
+                "nombre": lugar.get("name"),
+                "direccion": lugar.get("formatted_address"),
+                "latitud": lugar["geometry"]["location"]["lat"],
+                "longitud": lugar["geometry"]["location"]["lng"],
+                "foto": f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={lugar['photos'][0]['photo_reference']}&key={settings.GOOGLE_API_KEY}" if "photos" in lugar else None,
+                "place_id": lugar.get("place_id"),
+            })
+
+        return Response(resultados)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+    
+
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def añadir_actividad_a_viaje(request, viaje_id):
+    data = request.data
+    nombre = data.get("nombre")
+    ciudad = data.get("ciudad")
+    descripcion = data.get("descripcion", "")
+    url_imagen = data.get("url_imagen")
+    latitud = data.get("latitud")
+    longitud = data.get("longitud")
+    fecha_realizacion = data.get("fecha_realizacion", str(date.today()))
+
+    if not nombre or not ciudad:
+        return Response({"error": "Faltan campos obligatorios"}, status=400)
+
+    actividad, creada = Actividad.objects.get_or_create(
+        nombre=nombre,
+        ciudad=ciudad,
+        defaults={
+            "descripcion": descripcion,
+            "url_imagen": url_imagen,
+            "latitud": latitud,
+            "longitud": longitud,
+        }
+    )
+
+    try:
+        viaje = Viaje.objects.get(id=viaje_id, usuario=request.user)
+        ActividadEnViaje.objects.create(
+            viaje=viaje,
+            actividad=actividad,
+            fecha_realizacion=fecha_realizacion
+        )
+        return Response({"mensaje": "Actividad añadida correctamente"})
+    except Viaje.DoesNotExist:
+        return Response({"error": "Viaje no encontrado"}, status=404)
+    
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def buscar_hoteles(request):
+    query = request.GET.get("q", "")
+    if not query:
+        return Response({"error": "Falta el término de búsqueda"}, status=400)
+
+    url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+    params = {
+        "query": query,
+        
+        "language": "es",
+        "key": settings.GOOGLE_API_KEY,
+    }
+
+    try:
+        r = requests.get(url, params=params)
+        data = r.json()
+
+        resultados = []
+        for lugar in data.get("results", []):
+            resultados.append({
+                "nombre": lugar.get("name"),
+                "direccion": lugar.get("formatted_address"),
+                "latitud": lugar["geometry"]["location"]["lat"],
+                "longitud": lugar["geometry"]["location"]["lng"],
+                "foto": f"https://maps.googleapis.com/maps/api/place/photo?maxwidth=400&photoreference={lugar['photos'][0]['photo_reference']}&key={settings.GOOGLE_API_KEY}" if "photos" in lugar else None,
+                "place_id": lugar.get("place_id"),
+            })
+
+        return Response(resultados)
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+
+    
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def añadir_hotel_a_viaje(request, viaje_id):
+    data = request.data
+    nombre = data.get("nombre")
+    direccion = data.get("direccion")
+    pais = data.get("pais", "España")  
+    descripcion = data.get("descripcion", "")
+    imagen = data.get("imagen")
+    latitud = data.get("latitud")
+    longitud = data.get("longitud")
+    fecha_inicio = data.get("fecha_inicio")
+    fecha_fin = data.get("fecha_fin")
+
+    if not all([nombre, direccion, fecha_inicio, fecha_fin]):
+        return Response({"error": "Faltan campos requeridos"}, status=400)
+
+    hotel, creado = Hotel.objects.get_or_create(
+    nombre=nombre,
+    direccion=direccion,
+    defaults={
+        "pais": pais,
+        "descripcion": descripcion or direccion,
+        "imagen": imagen,
+        "latitud": latitud,
+        "longitud": longitud
+    }
+    )
+
+    try:
+        viaje = Viaje.objects.get(id=viaje_id, usuario=request.user)
+        EstanciaHotel.objects.create(
+            viaje=viaje,
+            hotel=hotel,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin
+        )
+        return Response({"mensaje": "Hotel añadido correctamente"})
+    except Viaje.DoesNotExist:
+        return Response({"error": "Viaje no encontrado"}, status=404)
+    
+
+
+
 
 
 

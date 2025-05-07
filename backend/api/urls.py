@@ -13,7 +13,12 @@ from .views import (
     ViajeCompartidoViewSet,
     GoogleLoginView,
     estado_relacion_mutua,
-    EstanciaHotelViewSet
+    EstanciaHotelViewSet,
+    buscar_actividades,
+    añadir_actividad_a_viaje,
+    añadir_hotel_a_viaje,
+    buscar_hoteles
+
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from .views import PasswordResetRequestView, PasswordResetConfirmView
@@ -54,5 +59,9 @@ urlpatterns = [
     path('api/relacion/estado_mutuo/<int:pk>/', estado_relacion_mutua, name='estado_relacion_mutua'),
     path('api/password_reset/', PasswordResetRequestView.as_view(), name='password_reset_request'),
     path('api/password_reset_confirm/', PasswordResetConfirmView.as_view(), name='password_reset_confirm'),
+    path("api/busqueda/actividades/", buscar_actividades, name="buscar_actividades"),
+    path("api/viajes/<int:viaje_id>/agregar_actividad/", añadir_actividad_a_viaje, name="agregar_actividad"),
+    path("api/viajes/<int:viaje_id>/agregar_hotel/", añadir_hotel_a_viaje, name="agregar_hotel"),
+    path("api/busqueda/hoteles/", buscar_hoteles, name="buscar_hoteles"),
     
 ]

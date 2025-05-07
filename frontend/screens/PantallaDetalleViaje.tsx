@@ -14,6 +14,10 @@ import api from "../services/api";
 import { StackScreenProps } from "@react-navigation/stack";
 import { RootStackParamList } from "../App";
 import { FontAwesome } from "@expo/vector-icons";
+import { TextInput } from "react-native";
+
+import BuscarActividadesHoteles from "../components/BuscarActividadesHoteles";
+import { LugarGoogle } from "../types/typeGoogle";
 
 type Props = StackScreenProps<RootStackParamList, "DetalleViaje">;
 
@@ -22,6 +26,13 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
   const [viaje, setViaje] = useState<any>(null);
   const { viajeId } = route.params;
   const [estaPublicado, setEstaPublicado] = useState<boolean>(false);
+  const [nuevaNota, setNuevaNota] = useState("");
+  const [notas, setNotas] = useState<string[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [modoBusqueda, setModoBusqueda] = useState<"actividad" | "hotel" | null>(null);
+  const [fechaSeleccionada, setFechaSeleccionada] = useState<string | null>(null);
+
+
 
 
   const cargarDatos = async () => {
@@ -30,6 +41,8 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
       headers: { Authorization: `Bearer ${token}` },
     });
     setViaje(respuestaViaje.data);
+    setNotas(respuestaViaje.data.notas?.split("\n").filter((n: string) => n.trim()) || []);
+
 
     const estado = await api.get(`viaje_compartido/${viajeId}/esta_publicado/`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -55,6 +68,70 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
       ]
     );
   };
+
+  const manejarSeleccionLugar = async (lugar: LugarGoogle, fechasHotel?: { inicio: string; fin: string }) => {
+    const token = await AsyncStorage.getItem("access_token");
+    const headers = { Authorization: `Bearer ${token}` };
+  
+    if (!modoBusqueda || !viaje) return;
+  
+    if (modoBusqueda === "actividad" && fechaSeleccionada) {
+      try {
+        await api.post(`viajes/${viajeId}/añadir_actividad/`, {
+          nombre: lugar.nombre,
+          ciudad: lugar.direccion,
+          descripcion: "",
+          url_imagen: lugar.foto,
+          latitud: lugar.latitud,
+          longitud: lugar.longitud,
+          fecha_realizacion: fechaSeleccionada,
+        }, { headers });
+  
+        cargarDatos();
+      } catch (err) {
+        Alert.alert("Error", "No se pudo añadir la actividad");
+      }
+    }
+  
+    if (modoBusqueda === "hotel" && fechasHotel) {
+      try {
+        await api.post(`viajes/${viajeId}/añadir_hotel/`, {
+          nombre: lugar.nombre,
+          ciudad: lugar.direccion,
+          pais: "España",
+          descripcion: "",
+          imagen: lugar.foto,
+          latitud: lugar.latitud,
+          longitud: lugar.longitud,
+          fecha_inicio: fechasHotel.inicio,
+          fecha_fin: fechasHotel.fin,
+        }, { headers });
+    
+        cargarDatos();
+      } catch (err) {
+        Alert.alert("Error", "No se pudo añadir el hotel");
+      }
+    }
+    
+  
+    setModalVisible(false);
+  };
+  
+
+  const guardarNotas = async (notasActualizadas: string[]) => {
+    const token = await AsyncStorage.getItem("access_token");
+    try {
+      await api.patch(`viajes/${viajeId}/`, {
+        notas: notasActualizadas.join("\n"),
+      }, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotas(notasActualizadas);
+    } catch (err) {
+      Alert.alert("Error", "No se pudieron guardar los recordatorios");
+    }
+  };
+  
 
   const eliminarElemento = async (tipo: "hotel" | "actividad", id: number) => {
     const token = await AsyncStorage.getItem("access_token");
@@ -93,7 +170,74 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
               </View>
             ))
           )}
+
+          <View style={{ paddingHorizontal: 10, marginTop: 20 }}>
+            <Text style={estilos.subtitulo}>Recordatorios:</Text>
+
+            {notas.map((nota, index) => (
+              <View key={index} style={estilos.cardHorizontal}>
+                <Text style={{ flex: 1 }}>{nota}</Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    const nuevas = notas.filter((_, i) => i !== index);
+                    guardarNotas(nuevas);
+                  }}
+                >
+                  <FontAwesome name="trash" size={18} color="red" />
+                </TouchableOpacity>
+              </View>
+            ))}
+
+            <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
+              <TextInput
+                placeholder="Escribe un nuevo recordatorio"
+                value={nuevaNota}
+                onChangeText={setNuevaNota}
+                style={{
+                  flex: 1,
+                  borderWidth: 1,
+                  borderColor: "#ccc",
+                  borderRadius: 8,
+                  padding: 8,
+                }}
+              />
+              <TouchableOpacity
+                onPress={() => {
+                  if (nuevaNota.trim() !== "") {
+                    const actualizadas = [...notas, nuevaNota.trim()];
+                    guardarNotas(actualizadas);
+                    setNuevaNota("");
+                  }
+                }}
+                style={{
+                  backgroundColor: "#00C4CC",
+                  marginLeft: 8,
+                  padding: 10,
+                  borderRadius: 8,
+                }}
+              >
+                <FontAwesome name="plus" size={16} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            </View>
+              <View style={{ padding: 10 }}>
+            <TouchableOpacity
+              style={{ backgroundColor: "#007AFF", padding: 12, borderRadius: 10 }}
+              onPress={() => {
+                setModoBusqueda("hotel");
+                setFechaSeleccionada(null);
+                setModalVisible(true);
+              }}
+            >
+              <Text style={{ color: "#fff", textAlign: "center", fontWeight: "bold" }}>
+                Añadir hotel
+              </Text>
+            </TouchableOpacity>
+           </View>
+
         </View>
+
+        
       );
     }
 
@@ -146,6 +290,23 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                     </TouchableOpacity>
                   ))
                 )}
+                <View style={{ marginHorizontal: 10, marginTop: 10 }}>
+                  <TouchableOpacity
+                    style={{
+                      backgroundColor: "#00C4CC",
+                      paddingVertical: 10,
+                      borderRadius: 8,
+                      alignItems: "center",
+                    }}
+                    onPress={() => {
+                      setModoBusqueda("actividad");
+                      setFechaSeleccionada(fecha); // ← clave
+                      setModalVisible(true);
+                    }}
+                  >
+                    <Text style={{ color: "#fff", fontWeight: "bold" }}>Añadir actividad</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             );
           })}
@@ -190,6 +351,17 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
         </View>
   
         {renderizarContenido()}
+        <BuscarActividadesHoteles
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            modo={modoBusqueda}
+            viaje={viaje}
+            fechaSeleccionada={fechaSeleccionada}
+            onAñadido={() => {
+              setModalVisible(false);
+              cargarDatos();
+            }}
+            />
       </ScrollView>
   
       <View style={estilos.botonContenedor}>
