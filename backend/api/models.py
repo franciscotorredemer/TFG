@@ -6,7 +6,7 @@ from datetime import date
 class Actividad(models.Model):
     nombre = models.CharField(max_length=255)
     descripcion = models.TextField()
-    url_imagen = models.URLField()
+    url_imagen = models.URLField(max_length=500)
     ciudad = models.CharField(max_length=255)
     latitud = models.FloatField(null=True, blank=True)
     longitud = models.FloatField(null=True, blank=True)
@@ -55,7 +55,7 @@ class Hotel(models.Model):
     pais = models.CharField(max_length=255)
     latitud = models.FloatField(null=True, blank=True)
     longitud = models.FloatField(null=True, blank=True)
-    imagen = models.URLField()
+    imagen = models.URLField(max_length=500)
     google_place_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
     def __str__(self):
