@@ -444,6 +444,7 @@ def buscar_actividades(request):
 @permission_classes([IsAuthenticated])
 def añadir_actividad_a_viaje(request, viaje_id):
     data = request.data
+    place_id = data.get("place_id")
     nombre = data.get("nombre")
     ciudad = data.get("ciudad")
     descripcion = data.get("descripcion", "")
@@ -455,16 +456,20 @@ def añadir_actividad_a_viaje(request, viaje_id):
     if not nombre or not ciudad:
         return Response({"error": "Faltan campos obligatorios"}, status=400)
 
-    actividad, creada = Actividad.objects.get_or_create(
-        nombre=nombre,
-        ciudad=ciudad,
-        defaults={
-            "descripcion": descripcion,
-            "url_imagen": url_imagen,
-            "latitud": latitud,
-            "longitud": longitud,
-        }
-    )
+    actividad = None
+    if place_id:
+        actividad = Actividad.objects.filter(google_place_id=place_id).first()
+
+    if not actividad:
+        actividad = Actividad.objects.create(
+            nombre=nombre,
+            ciudad=ciudad,
+            descripcion=descripcion,
+            url_imagen=url_imagen,
+            latitud=latitud,
+            longitud=longitud,
+            google_place_id=place_id
+        )
 
     try:
         viaje = Viaje.objects.get(id=viaje_id, usuario=request.user)
@@ -476,6 +481,7 @@ def añadir_actividad_a_viaje(request, viaje_id):
         return Response({"mensaje": "Actividad añadida correctamente"})
     except Viaje.DoesNotExist:
         return Response({"error": "Viaje no encontrado"}, status=404)
+
     
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -520,9 +526,10 @@ def buscar_hoteles(request):
 @permission_classes([IsAuthenticated])
 def añadir_hotel_a_viaje(request, viaje_id):
     data = request.data
+    place_id = data.get("place_id")
     nombre = data.get("nombre")
     direccion = data.get("direccion")
-    pais = data.get("pais", "España")  
+    pais = data.get("pais", "España")
     descripcion = data.get("descripcion", "")
     imagen = data.get("imagen")
     latitud = data.get("latitud")
@@ -533,17 +540,21 @@ def añadir_hotel_a_viaje(request, viaje_id):
     if not all([nombre, direccion, fecha_inicio, fecha_fin]):
         return Response({"error": "Faltan campos requeridos"}, status=400)
 
-    hotel, creado = Hotel.objects.get_or_create(
-    nombre=nombre,
-    direccion=direccion,
-    defaults={
-        "pais": pais,
-        "descripcion": descripcion or direccion,
-        "imagen": imagen,
-        "latitud": latitud,
-        "longitud": longitud
-    }
-    )
+    hotel = None
+    if place_id:
+        hotel = Hotel.objects.filter(google_place_id=place_id).first()
+
+    if not hotel:
+        hotel = Hotel.objects.create(
+            nombre=nombre,
+            direccion=direccion,
+            pais=pais,
+            descripcion=descripcion or direccion,
+            imagen=imagen,
+            latitud=latitud,
+            longitud=longitud,
+            google_place_id=place_id
+        )
 
     try:
         viaje = Viaje.objects.get(id=viaje_id, usuario=request.user)
@@ -556,6 +567,7 @@ def añadir_hotel_a_viaje(request, viaje_id):
         return Response({"mensaje": "Hotel añadido correctamente"})
     except Viaje.DoesNotExist:
         return Response({"error": "Viaje no encontrado"}, status=404)
+
     
 
 
