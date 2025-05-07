@@ -35,10 +35,12 @@ const BuscarActividadesHoteles: React.FC<Props> = ({ visible, onClose, tipo, onS
   const buscar = async () => {
     setLoading(true);
     try {
-      const res = await api.get(`buscar_${tipo}s?q=${query}`);
+        const endpoint = tipo === "hotel" ? "busqueda/hoteles" : "busqueda/actividades";
+        const termino = tipo === "hotel" ? `hotel ${query}` : query;
+        const res = await api.get(`${endpoint}/?q=${encodeURIComponent(termino)}`);
       setResultados(res.data);
     } catch (err) {
-      console.error("Error buscando:", err);
+      console.error("Error buscando:", err); 
     } finally {
       setLoading(false);
     }

@@ -85,6 +85,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
           latitud: lugar.latitud,
           longitud: lugar.longitud,
           fecha_realizacion: fechaSeleccionada,
+          place_id: lugar.place_id,
         }, { headers });
   
         cargarDatos();
@@ -95,16 +96,19 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
   
     if (modoBusqueda === "hotel" && fechasHotel) {
       try {
+        const partesDireccion = lugar.direccion.split(",");
+        const paisExtraido = partesDireccion[partesDireccion.length - 1]?.trim() || "Desconocido";
         await api.post(`viajes/${viajeId}/añadir_hotel/`, {
           nombre: lugar.nombre,
           ciudad: lugar.direccion,
-          pais: "España",
+          pais: paisExtraido,
           descripcion: "",
-          imagen: lugar.foto,
+          imagen: lugar.foto,      
           latitud: lugar.latitud,
           longitud: lugar.longitud,
           fecha_inicio: fechasHotel.inicio,
           fecha_fin: fechasHotel.fin,
+          place_id: lugar.place_id,
         }, { headers });
     
         cargarDatos();
@@ -170,10 +174,26 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
               </View>
             ))
           )}
-
+    
+          
+          <View style={{ padding: 10 }}>
+            <TouchableOpacity
+              style={{ backgroundColor: "#007AFF", padding: 12, borderRadius: 10 }}
+              onPress={() => {
+                setModoBusqueda("hotel");
+                setFechaSeleccionada(null);
+                setModalVisible(true);
+              }}
+            >
+              <Text style={{ color: "#fff", textAlign: "center", fontWeight: "bold" }}>
+                Añadir hotel
+              </Text>
+            </TouchableOpacity>
+          </View>
+    
           <View style={{ paddingHorizontal: 10, marginTop: 20 }}>
             <Text style={estilos.subtitulo}>Recordatorios:</Text>
-
+    
             {notas.map((nota, index) => (
               <View key={index} style={estilos.cardHorizontal}>
                 <Text style={{ flex: 1 }}>{nota}</Text>
@@ -187,7 +207,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                 </TouchableOpacity>
               </View>
             ))}
-
+    
             <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
               <TextInput
                 placeholder="Escribe un nuevo recordatorio"
@@ -219,27 +239,11 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                 <FontAwesome name="plus" size={16} color="#fff" />
               </TouchableOpacity>
             </View>
-            </View>
-              <View style={{ padding: 10 }}>
-            <TouchableOpacity
-              style={{ backgroundColor: "#007AFF", padding: 12, borderRadius: 10 }}
-              onPress={() => {
-                setModoBusqueda("hotel");
-                setFechaSeleccionada(null);
-                setModalVisible(true);
-              }}
-            >
-              <Text style={{ color: "#fff", textAlign: "center", fontWeight: "bold" }}>
-                Añadir hotel
-              </Text>
-            </TouchableOpacity>
-           </View>
-
+          </View>
         </View>
-
-        
       );
     }
+    
 
     if (pestana === "itinerario") {
       if (!viaje) return null;
