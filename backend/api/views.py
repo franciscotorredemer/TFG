@@ -446,14 +446,14 @@ def añadir_actividad_a_viaje(request, viaje_id):
     data = request.data
     place_id = data.get("place_id")
     nombre = data.get("nombre")
-    ciudad = data.get("ciudad")
+    direccion = data.get("direccion")
     descripcion = data.get("descripcion", "")
     url_imagen = data.get("url_imagen")
     latitud = data.get("latitud")
     longitud = data.get("longitud")
     fecha_realizacion = data.get("fecha_realizacion", str(date.today()))
 
-    if not nombre or not ciudad:
+    if not nombre :
         return Response({"error": "Faltan campos obligatorios"}, status=400)
 
     actividad = None
@@ -463,7 +463,7 @@ def añadir_actividad_a_viaje(request, viaje_id):
     if not actividad:
         actividad = Actividad.objects.create(
             nombre=nombre,
-            ciudad=ciudad,
+            direccion=direccion,
             descripcion=descripcion,
             url_imagen=url_imagen,
             latitud=latitud,
