@@ -77,7 +77,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
   
     if (modoBusqueda === "actividad" && fechaSeleccionada) {
       try {
-        await api.post(`viajes/${viajeId}/añadir_actividad/`, {
+        await api.post(`viajes/${viajeId}/agregar_actividad/`, {
           nombre: lugar.nombre,
           ciudad: lugar.direccion,
           descripcion: "",
@@ -89,8 +89,14 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
         }, { headers });
   
         cargarDatos();
-      } catch (err) {
-        Alert.alert("Error", "No se pudo añadir la actividad");
+      }catch (err) {
+        if (err.response) {
+          console.log("Status:", err.response.status);
+          console.log("Headers:", err.response.headers);
+          console.log("DATA:", err.response.data);  // Aquí verás el HTML
+        } else {
+          console.error("Error sin response:", err);
+        }
       }
     }
   
@@ -98,7 +104,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
       try {
         const partesDireccion = lugar.direccion.split(",");
         const paisExtraido = partesDireccion[partesDireccion.length - 1]?.trim() || "Desconocido";
-        await api.post(`viajes/${viajeId}/añadir_hotel/`, {
+        await api.post(`viajes/${viajeId}/agregar_hotel/`, {
           nombre: lugar.nombre,
           ciudad: lugar.direccion,
           pais: paisExtraido,
