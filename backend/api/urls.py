@@ -17,7 +17,9 @@ from .views import (
     buscar_actividades,
     añadir_actividad_a_viaje,
     añadir_hotel_a_viaje,
-    buscar_hoteles
+    buscar_hoteles,
+    asociar_actividad_existente,
+    asociar_hotel_existente,
 
 )
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
@@ -63,5 +65,7 @@ urlpatterns = [
     path("api/viajes/<int:viaje_id>/agregar_actividad/", añadir_actividad_a_viaje, name="agregar_actividad"),
     path("api/viajes/<int:viaje_id>/agregar_hotel/", añadir_hotel_a_viaje, name="agregar_hotel"),
     path("api/busqueda/hoteles/", buscar_hoteles, name="buscar_hoteles"),
+    path('api/viajes/<int:viaje_id>/asociar_actividad/', asociar_actividad_existente),
+    path('api/viajes/<int:viaje_id>/asociar_hotel/', asociar_hotel_existente),
     
 ]

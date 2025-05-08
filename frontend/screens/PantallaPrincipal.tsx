@@ -22,6 +22,8 @@ import { FontAwesome, Ionicons } from "@expo/vector-icons"
 import TarjetaViaje from "../components/TarjetaViaje"
 import { LinearGradient } from "expo-linear-gradient"
 
+import { viajesRecomendados } from "../components/ViajesRecomendados"
+
 const logo = require("../assets/imagenes/logo.png")
 const fotoPerfil = require("../assets/imagenes/user.png")
 const { width } = Dimensions.get("window")
@@ -191,32 +193,32 @@ const PantallaPrincipal: React.FC<PropsPantallaPrincipal> = ({ navigation }) => 
           </View>
         )}
 
-        {/* Inspiración */}
-        <View style={estilos.seccionInspiracion}>
-          <Text style={estilos.tituloInspiracion}>Inspiración para tu próximo viaje</Text>
+        {[...new Set(viajesRecomendados.map(v => v.categoria))].map((categoria) => (
+          <View key={categoria} style={estilos.seccionInspiracion}>
+            <Text style={estilos.tituloInspiracion}>{categoria}</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={estilos.contenedorDestinos}
+            >
+              {viajesRecomendados
+                .filter(v => v.categoria === categoria)
+                .map((viaje, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={estilos.tarjetaDestino}
+                    onPress={() => navigation.navigate("RecomendadoDetalle", { viajeRecomendado: viaje })}
+                  >
+                    <LinearGradient colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.7)"]} style={estilos.gradienteDestino}>
+                      <Text style={estilos.nombreDestino}>{viaje.nombre}</Text>
+                    </LinearGradient>
+                    <Image source={{ uri: viaje.imagen_destacada }} style={estilos.imagenDestino} />
+                  </TouchableOpacity>
+                ))}
+            </ScrollView>
+          </View>
+        ))}
 
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={estilos.contenedorDestinos}
-          >
-            {["Barcelona", "París", "Roma", "Tokio", "Nueva York"].map((ciudad, index) => (
-              <TouchableOpacity
-                key={index}
-                style={estilos.tarjetaDestino}
-                onPress={() => navigation.navigate("BuscarDestino", { ciudad })}
-              >
-                <LinearGradient colors={["rgba(0,0,0,0)", "rgba(0,0,0,0.7)"]} style={estilos.gradienteDestino}>
-                  <Text style={estilos.nombreDestino}>{ciudad}</Text>
-                </LinearGradient>
-                <Image
-                  source={{ uri: `https://source.unsplash.com/300x200/?${ciudad.toLowerCase()}` }}
-                  style={estilos.imagenDestino}
-                />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        </View>
 
         <View style={{ height: 100 }} />
       </ScrollView>
