@@ -83,7 +83,7 @@ const PantallaDetalleActividad: React.FC<Props> = ({ route }) => {
 
         <ScrollView showsVerticalScrollIndicator={false}>
           <Text style={styles.title}>{actividad.nombre}</Text>
-          <Text style={styles.ubicacion}>{actividad.ciudad} · {actividad.ubicacion}</Text>
+          <Text style={styles.ubicacion}>{actividad.direccion} · {actividad.ubicacion}</Text>
           <Text style={styles.descripcion}>{actividad.descripcion}</Text>
           {actividad.fecha_realizacion && (
             <Text style={styles.fecha}>Fecha: {actividad.fecha_realizacion}</Text>
