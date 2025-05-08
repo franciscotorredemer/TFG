@@ -19,6 +19,10 @@ import { TextInput } from "react-native";
 import BuscarActividadesHoteles from "../components/BuscarActividadesHoteles";
 import { LugarGoogle } from "../types/typeGoogle";
 
+import ComentarioPubli from "../components/ComentarioPubli";
+
+
+
 type Props = StackScreenProps<RootStackParamList, "DetalleViaje">;
 
 const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
@@ -31,6 +35,9 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modoBusqueda, setModoBusqueda] = useState<"actividad" | "hotel" | null>(null);
   const [fechaSeleccionada, setFechaSeleccionada] = useState<string | null>(null);
+
+  const [comentario, setComentario] = useState("");
+  const [mostrarModalComentario, setMostrarModalComentario] = useState(false);
 
 
 
@@ -49,6 +56,31 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
     });
     setEstaPublicado(estado.data.publicado);
   };
+
+  const despublicarViaje = () => {
+    Alert.alert(
+      "¿Dejar de publicar?",
+      "Esto hará que el viaje ya no esté disponible públicamente.",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Dejar de publicar",
+          style: "destructive",
+          onPress: async () => {
+            const token = await AsyncStorage.getItem("access_token");
+            const headers = { Authorization: `Bearer ${token}` };
+            try {
+              await api.post(`viaje_compartido/${viajeId}/despublicar/`, {}, { headers });
+              cargarDatos();
+            } catch (err) {
+              Alert.alert("Error", "No se pudo actualizar el estado del viaje.");
+            }
+          },
+        },
+      ]
+    );
+  };
+  
 
   useEffect(() => {
     cargarDatos();
@@ -170,9 +202,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                 <View style={{ flex: 1 }}>
                   <Text style={estilos.cardTitulo}>{estancia.hotel.nombre}</Text>
                   <Text style={estilos.cardTexto}>{estancia.hotel.descripcion}</Text>
-                  <Text style={estilos.cardTexto}>
-                    {estancia.hotel.direccion}, {estancia.hotel.pais}
-                  </Text>
+                  
                   <Text style={estilos.cardTexto}>
                     {new Date(estancia.fecha_inicio).toLocaleDateString()} -{" "}
                     {new Date(estancia.fecha_fin).toLocaleDateString()}
@@ -237,7 +267,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                   }
                 }}
                 style={{
-                  backgroundColor: "#00C4CC",
+                  backgroundColor: "#007AFF",
                   marginLeft: 8,
                   padding: 10,
                   borderRadius: 8,
@@ -246,6 +276,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                 <FontAwesome name="plus" size={16} color="#fff" />
               </TouchableOpacity>
             </View>
+            <View style={{ height: 40 }} />
           </View>
         </View>
       );
@@ -292,8 +323,8 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                       <View style={{ flex: 1 }}>
                         <Text style={estilos.cardTitulo}>{actividad.nombre}</Text>
                         <Text style={estilos.cardTexto}>{actividad.direccion}</Text>
-                        <Text style={estilos.cardTexto}>Coordenadas: {actividad.latitud}, {actividad.longitud}</Text>
-                        <Text style={estilos.mapa}>Marcar en mapa</Text>
+                        
+                        
                       </View>
                       <TouchableOpacity onPress={() => confirmarEliminacion("actividad", actividad.id)}>
                         <FontAwesome name="trash" size={20} color="red" />
@@ -301,23 +332,26 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                     </TouchableOpacity>
                   ))
                 )}
-                <View style={{ marginHorizontal: 10, marginTop: 10 }}>
-                  <TouchableOpacity
-                    style={{
-                      backgroundColor: "#00C4CC",
-                      paddingVertical: 10,
-                      borderRadius: 8,
-                      alignItems: "center",
-                    }}
-                    onPress={() => {
-                      setModoBusqueda("actividad");
-                      setFechaSeleccionada(fecha); // ← clave
-                      setModalVisible(true);
-                    }}
-                  >
-                    <Text style={{ color: "#fff", fontWeight: "bold" }}>Añadir actividad</Text>
-                  </TouchableOpacity>
-                </View>
+                <View style={{ alignItems: "flex-end", marginHorizontal: 10, marginTop: 8 }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setModoBusqueda("actividad");
+                    setFechaSeleccionada(fecha);
+                    setModalVisible(true);
+                  }}
+                  style={{
+                    backgroundColor: "#007AFF",
+                    width: 36,
+                    height: 36,
+                    borderRadius: 18,
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <FontAwesome name="plus" size={18} color="#fff" />
+                </TouchableOpacity>
+              </View>
+
               </View>
             );
           })}
@@ -371,7 +405,35 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
           fechaActividad={fechaSeleccionada}
           onSelect={manejarSeleccionLugar}
         />
+        
+
       </ScrollView>
+
+      <ComentarioPubli
+          visible={mostrarModalComentario}
+          onClose={() => setMostrarModalComentario(false)}
+          comentario={comentario}
+          onChangeComentario={setComentario}
+          onPublicar={async () => {
+            if (!comentario.trim()) {
+              Alert.alert("Comentario requerido", "Debes añadir un comentario para publicar.");
+              return;
+            }
+
+            const token = await AsyncStorage.getItem("access_token");
+            const headers = { Authorization: `Bearer ${token}` };
+
+            try {
+              await api.post(`viaje_compartido/${viajeId}/publicar/`, { comentario }, { headers });
+              setMostrarModalComentario(false);
+              setComentario("");
+              cargarDatos();
+            } catch (err) {
+              Alert.alert("Error", "No se pudo publicar el viaje.");
+              console.error("Error publicando:", err);
+            }
+          }}
+        />
   
       <View style={estilos.botonContenedor}>
         <TouchableOpacity
@@ -380,59 +442,13 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
             estaPublicado ? estilos.botonGris : estilos.botonAzul,
           ]}
           onPress={() => {
-            Alert.alert(
-              estaPublicado ? "¿Dejar de publicar?" : "¿Publicar este viaje?",
-              estaPublicado
-                ? "Esto hará que el viaje ya no esté disponible públicamente."
-                : "Esto compartirá tu viaje con otros usuarios.",
-              [
-                { text: "Cancelar", style: "cancel" },
-                {
-                  text: estaPublicado ? "Dejar de publicar" : "Publicar",
-                  onPress: async () => {
-                    const token = await AsyncStorage.getItem("access_token");
-                    const headers = { Authorization: `Bearer ${token}` };
-                    try {
-                      if (estaPublicado) {
-                        await api.post(`viaje_compartido/${viajeId}/despublicar/`, {}, { headers });
-                      } else {
-                        Alert.prompt(
-                          "Comentario",
-                          "Añade un comentario para compartir este viaje (visible para otros usuarios):",
-                          [
-                            { text: "Cancelar", style: "cancel" },
-                            {
-                              text: "Publicar",
-                              onPress: async (comentario) => {
-                                if (!comentario || comentario.trim() === "") {
-                                  Alert.alert("Comentario requerido", "Debes añadir un comentario para publicar.");
-                                  return;
-                                }
-                        
-                                try {
-                                  await api.post(`viaje_compartido/${viajeId}/publicar/`, { comentario }, { headers });
-                                  cargarDatos();
-                                } catch (err) {
-                                  Alert.alert("Error", "No se pudo publicar el viaje.");
-                                  console.error("Error publicando:", err);
-                                }
-                              },
-                            },
-                          ],
-                          "plain-text"
-                        );
-                        
-                      }
-                      cargarDatos();
-                    } catch (err) {
-                      Alert.alert("Error", "No se pudo actualizar el estado del viaje.");
-                    }
-                  },
-                  style: "destructive",
-                },
-              ]
-            );
+            if (estaPublicado) {
+              despublicarViaje();
+            } else {
+              setMostrarModalComentario(true);
+            }
           }}
+          
         >
           <Text style={estilos.textoBoton}>
             {estaPublicado ? "Dejar de publicar viaje" : "Publicar viaje"}

@@ -4,10 +4,10 @@ from django.contrib.auth.models import AbstractUser
 from datetime import date
 
 class Actividad(models.Model):
-    nombre = models.CharField(max_length=255)
+    nombre = models.CharField(max_length=2000)
     descripcion = models.TextField()
-    url_imagen = models.URLField(max_length=500)
-    direccion = models.CharField(max_length=255)
+    url_imagen = models.URLField(max_length=2000)
+    direccion = models.CharField(max_length=2000)
     latitud = models.FloatField(null=True, blank=True)
     longitud = models.FloatField(null=True, blank=True)
     google_place_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
@@ -49,13 +49,13 @@ class ActividadEnViaje(models.Model):
     
 
 class Hotel(models.Model):
-    nombre = models.CharField(max_length=255)
+    nombre = models.CharField(max_length=2000)
     descripcion = models.TextField()
-    direccion = models.CharField(max_length=255)
+    direccion = models.CharField(max_length=2000)
     pais = models.CharField(max_length=255)
     latitud = models.FloatField(null=True, blank=True)
     longitud = models.FloatField(null=True, blank=True)
-    imagen = models.URLField(max_length=500)
+    imagen = models.URLField(max_length=2000)
     google_place_id = models.CharField(max_length=255, unique=True, null=True, blank=True)
 
     def __str__(self):
