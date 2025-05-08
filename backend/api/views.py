@@ -567,10 +567,58 @@ def añadir_hotel_a_viaje(request, viaje_id):
         return Response({"mensaje": "Hotel añadido correctamente"})
     except Viaje.DoesNotExist:
         return Response({"error": "Viaje no encontrado"}, status=404)
-
     
 
 
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def asociar_actividad_existente(request, viaje_id):
+    actividad_id = request.data.get("actividad_id")
+    fecha_realizacion = request.data.get("fecha_realizacion")
+
+    if not actividad_id:
+        return Response({"error": "Falta el ID de la actividad"}, status=400)
+
+    try:
+        actividad = Actividad.objects.get(id=actividad_id)
+        viaje = Viaje.objects.get(id=viaje_id, usuario=request.user)
+
+        ActividadEnViaje.objects.create(
+            actividad=actividad,
+            viaje=viaje,
+            fecha_realizacion=fecha_realizacion or date.today()
+        )
+        return Response({"mensaje": "Actividad asociada correctamente"})
+    except (Actividad.DoesNotExist, Viaje.DoesNotExist):
+        return Response({"error": "No encontrado"}, status=404)
+
+    
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def asociar_hotel_existente(request, viaje_id):
+    hotel_id = request.data.get("hotel_id")
+    fecha_inicio = request.data.get("fecha_inicio")
+    fecha_fin = request.data.get("fecha_fin")
+
+    if not hotel_id or not fecha_inicio or not fecha_fin:
+        return Response({"error": "Faltan datos"}, status=400)
+
+    try:
+        hotel = Hotel.objects.get(id=hotel_id)
+        viaje = Viaje.objects.get(id=viaje_id, usuario=request.user)
+
+        EstanciaHotel.objects.create(
+            hotel=hotel,
+            viaje=viaje,
+            fecha_inicio=fecha_inicio,
+            fecha_fin=fecha_fin
+        )
+        return Response({"mensaje": "Hotel asociado correctamente"})
+    except (Hotel.DoesNotExist, Viaje.DoesNotExist):
+        return Response({"error": "No encontrado"}, status=404)
 
 
 
