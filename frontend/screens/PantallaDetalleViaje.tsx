@@ -69,11 +69,6 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
     );
   };
 
-  const extraerCiudad = (direccion: string): string => {
-    const partes = direccion.split(",");
-    return partes.length >= 2 ? partes[partes.length - 3]?.trim() || "Ciudad desconocida" : "Ciudad desconocida";
-  };
-  
 
   const manejarSeleccionLugar = async (lugar: LugarGoogle, fechasHotel?: { inicio: string; fin: string }) => {
     const token = await AsyncStorage.getItem("access_token");
@@ -85,7 +80,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
       try {
         await api.post(`viajes/${viajeId}/agregar_actividad/`, {
           nombre: lugar.nombre,
-          ciudad: extraerCiudad(lugar.direccion), 
+          direccion: lugar.direccion, 
           descripcion: "",
           url_imagen: lugar.foto,
           latitud: lugar.latitud,
@@ -176,7 +171,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                   <Text style={estilos.cardTitulo}>{estancia.hotel.nombre}</Text>
                   <Text style={estilos.cardTexto}>{estancia.hotel.descripcion}</Text>
                   <Text style={estilos.cardTexto}>
-                    {estancia.hotel.ciudad}, {estancia.hotel.pais}
+                    {estancia.hotel.direccion}, {estancia.hotel.pais}
                   </Text>
                   <Text style={estilos.cardTexto}>
                     {new Date(estancia.fecha_inicio).toLocaleDateString()} -{" "}
@@ -296,7 +291,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                       <Image source={{ uri: actividad.url_imagen }} style={estilos.cardImagen} />
                       <View style={{ flex: 1 }}>
                         <Text style={estilos.cardTitulo}>{actividad.nombre}</Text>
-                        <Text style={estilos.cardTexto}>{actividad.ciudad}</Text>
+                        <Text style={estilos.cardTexto}>{actividad.direccion}</Text>
                         <Text style={estilos.cardTexto}>Coordenadas: {actividad.latitud}, {actividad.longitud}</Text>
                         <Text style={estilos.mapa}>Marcar en mapa</Text>
                       </View>
