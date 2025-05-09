@@ -39,21 +39,18 @@ export const viajesRecomendados = [
         imagen_destacada: "https://www.cadizturismo.com/storage/app/media/uploaded-files/p-cadiz_turismo.jpg",
         categoria: "Cultura",
         actividades: [
-            [
-                { actividad_id: 23, fecha_offset: 0 },
-                { actividad_id: 24, fecha_offset: 0 },
-                { actividad_id: 25, fecha_offset: 0 },
-                { actividad_id: 26, fecha_offset: 1 },
-                { actividad_id: 27, fecha_offset: 1 },
-                { actividad_id: 28, fecha_offset: 1 },
-                { actividad_id: 29, fecha_offset: 2 },
-                { actividad_id: 30, fecha_offset: 2 },
-                { actividad_id: 31, fecha_offset: 2 },
-                { actividad_id: 32, fecha_offset: 3 },
-                { actividad_id: 33, fecha_offset: 3 }
-              ]
-              
-        ],
+            { actividad_id: 23, fecha_offset: 0 },
+            { actividad_id: 24, fecha_offset: 0 },
+            { actividad_id: 25, fecha_offset: 0 },
+            { actividad_id: 26, fecha_offset: 1 },
+            { actividad_id: 27, fecha_offset: 1 },
+            { actividad_id: 28, fecha_offset: 1 },
+            { actividad_id: 29, fecha_offset: 2 },
+            { actividad_id: 30, fecha_offset: 2 },
+            { actividad_id: 31, fecha_offset: 2 },
+            { actividad_id: 32, fecha_offset: 3 },
+            { actividad_id: 33, fecha_offset: 3 }
+          ],
         hoteles: [
           { hotel_id: 10 },
           { hotel_id: 11 }
