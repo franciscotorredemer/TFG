@@ -6,11 +6,13 @@ import {
   TouchableOpacity,
   Alert,
   Platform,
+  Image,
 } from "react-native"
 import DateTimePicker from "@react-native-community/datetimepicker"
 import { useRoute, useNavigation } from "@react-navigation/native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import api from "../services/api"
+import { Ionicons } from "@expo/vector-icons"
 
 export default function RecomendadoDetalle() {
   const { params } = useRoute()
@@ -19,8 +21,18 @@ export default function RecomendadoDetalle() {
 
   const [fechaInicio, setFechaInicio] = useState(new Date())
   const [fechaFin, setFechaFin] = useState(new Date())
+  const [showInicioPicker, setShowInicioPicker] = useState(false)
+  const [showFinPicker, setShowFinPicker] = useState(false)
 
   const crearViaje = async () => {
+    if (fechaFin < fechaInicio) {
+      Alert.alert(
+        "Fechas inválidas",
+        "La fecha de fin no puede ser anterior a la de inicio. Por favor, corrige las fechas."
+      )
+      return
+    }
+
     try {
       const token = await AsyncStorage.getItem("access_token")
       const headers = { Authorization: `Bearer ${token}` }
@@ -39,36 +51,27 @@ export default function RecomendadoDetalle() {
 
       const viajeId = res.data.id
 
-      // Añadir actividades con sus datos reales
       for (const act of viaje.actividades || []) {
+        const fecha = new Date(fechaInicio)
+        fecha.setDate(fecha.getDate() + act.fecha_offset)
+
         await api.post(
-          `viajes/${viajeId}/agregar_actividad/`,
+          `viajes/${viajeId}/asociar_actividad/`,
           {
-            nombre: act.nombre,
-            descripcion: act.descripcion || "",
-            direccion: act.direccion || "",
-            url_imagen: act.url_imagen || null,
-            fecha_realizacion: act.fecha_realizacion,
+            actividad_id: act.actividad_id,
+            fecha_realizacion: fecha.toISOString().split("T")[0],
           },
           { headers }
         )
       }
 
-      // Añadir estancias de hotel
-      for (const estancia of viaje.estancias || []) {
-        const hotel = estancia.hotel
+      for (const h of viaje.hoteles || []) {
         await api.post(
-          `viajes/${viajeId}/agregar_hotel/`,
+          `viajes/${viajeId}/asociar_hotel/`,
           {
-            nombre: hotel.nombre,
-            direccion: hotel.direccion,
-            pais: hotel.pais,
-            descripcion: hotel.descripcion,
-            imagen: hotel.imagen,
-            latitud: hotel.latitud,
-            longitud: hotel.longitud,
-            fecha_inicio: estancia.fecha_inicio,
-            fecha_fin: estancia.fecha_fin,
+            hotel_id: h.hotel_id,
+            fecha_inicio: fechaInicio.toISOString().split("T")[0],
+            fecha_fin: fechaFin.toISOString().split("T")[0],
           },
           { headers }
         )
@@ -85,23 +88,46 @@ export default function RecomendadoDetalle() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Selecciona tus fechas</Text>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+        <Ionicons name="arrow-back" size={24} color="#333" />
+      </TouchableOpacity>
 
-      <Text style={styles.label}>Inicio</Text>
-      <DateTimePicker
-        value={fechaInicio}
-        mode="date"
-        display={Platform.OS === "ios" ? "spinner" : "default"}
-        onChange={(e, d) => d && setFechaInicio(d)}
-      />
+      {viaje?.imagen_destacada && (
+        <Image source={{ uri: viaje.imagen_destacada }} style={styles.image} />
+      )}
+      <Text style={styles.title}>{viaje?.nombre}</Text>
 
-      <Text style={styles.label}>Fin</Text>
-      <DateTimePicker
-        value={fechaFin}
-        mode="date"
-        display={Platform.OS === "ios" ? "spinner" : "default"}
-        onChange={(e, d) => d && setFechaFin(d)}
-      />
+      <Text style={styles.label}>Inicio: {fechaInicio.toLocaleDateString()}</Text>
+      <TouchableOpacity onPress={() => setShowInicioPicker(true)} style={styles.dateButton}>
+        <Text style={styles.dateButtonText}>Cambiar fecha de inicio</Text>
+      </TouchableOpacity>
+      {showInicioPicker && (
+        <DateTimePicker
+          value={fechaInicio}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(e, date) => {
+            setShowInicioPicker(false)
+            if (date) setFechaInicio(date)
+          }}
+        />
+      )}
+
+      <Text style={styles.label}>Fin: {fechaFin.toLocaleDateString()}</Text>
+      <TouchableOpacity onPress={() => setShowFinPicker(true)} style={styles.dateButton}>
+        <Text style={styles.dateButtonText}>Cambiar fecha de fin</Text>
+      </TouchableOpacity>
+      {showFinPicker && (
+        <DateTimePicker
+          value={fechaFin}
+          mode="date"
+          display={Platform.OS === "ios" ? "spinner" : "default"}
+          onChange={(e, date) => {
+            setShowFinPicker(false)
+            if (date) setFechaFin(date)
+          }}
+        />
+      )}
 
       <TouchableOpacity style={styles.button} onPress={crearViaje}>
         <Text style={styles.buttonText}>Crear viaje con este plan</Text>
@@ -115,7 +141,20 @@ const styles = StyleSheet.create({
     padding: 20,
     flex: 1,
     backgroundColor: "#fff",
-    justifyContent: "center",
+    justifyContent: "flex-start",
+  },
+  backButton: {
+    position: "absolute",
+    top: 40,
+    left: 20,
+    zIndex: 1,
+  },
+  image: {
+    width: "100%",
+    height: 180,
+    borderRadius: 12,
+    marginBottom: 16,
+    marginTop: 60,
   },
   title: {
     fontSize: 24,
@@ -128,6 +167,16 @@ const styles = StyleSheet.create({
     marginTop: 20,
     marginBottom: 10,
     fontWeight: "500",
+  },
+  dateButton: {
+    backgroundColor: "#eee",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  dateButtonText: {
+    fontSize: 16,
+    color: "#333",
   },
   button: {
     marginTop: 40,

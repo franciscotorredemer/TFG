@@ -103,6 +103,30 @@ class EstanciaHotel(models.Model):
 
     def __str__(self):
         return f"{self.hotel.nombre} en {self.viaje.nombre} ({self.fecha_inicio} - {self.fecha_fin})"
+    
+
+class Gasto(models.Model):
+    CATEGORIAS = [
+        ("Comida", "Comida"),
+        ("Transporte", "Transporte"),
+        ("Alojamiento", "Alojamiento"),
+        ("Ocio", "Ocio"),
+        ("Compras", "Compras"),
+        ("Otros", "Otros"),
+    ]
+
+    viaje = models.ForeignKey(Viaje, on_delete=models.CASCADE, related_name="gastos")
+    concepto = models.CharField(max_length=255)
+    cantidad = models.FloatField()
+    categoria = models.CharField(max_length=50, choices=CATEGORIAS)
+    fecha = models.DateField()
+    notas = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.concepto} - {self.cantidad}€"
+
+
+
 
 
 

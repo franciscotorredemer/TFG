@@ -6,8 +6,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
-from .models import ViajeCompartido, LikeViaje, EstanciaHotel
-from .serializers import ViajeCompartidoSerializer
+from .models import ViajeCompartido, LikeViaje, EstanciaHotel, Gasto
+from .serializers import ViajeCompartidoSerializer, GastoSerializer
 from django.utils.timezone import now, timedelta
 from google.oauth2 import id_token
 from google.auth.transport import requests
@@ -619,6 +619,15 @@ def asociar_hotel_existente(request, viaje_id):
         return Response({"mensaje": "Hotel asociado correctamente"})
     except (Hotel.DoesNotExist, Viaje.DoesNotExist):
         return Response({"error": "No encontrado"}, status=404)
+    
+
+class GastoViewSet(viewsets.ModelViewSet):
+    queryset = Gasto.objects.all()
+    serializer_class = GastoSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Gasto.objects.filter(viaje__usuario=self.request.user)
 
 
 
