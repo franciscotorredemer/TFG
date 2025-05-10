@@ -7,6 +7,8 @@ from rest_framework.decorators import api_view, permission_classes, action
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from .models import ViajeCompartido, LikeViaje, EstanciaHotel, Gasto
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from .serializers import ViajeCompartidoSerializer, GastoSerializer
 from django.utils.timezone import now, timedelta
 from google.oauth2 import id_token
@@ -625,9 +627,12 @@ class GastoViewSet(viewsets.ModelViewSet):
     queryset = Gasto.objects.all()
     serializer_class = GastoSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ["viaje"]
+    ordering_fields = ["fecha", "cantidad"]
 
     def get_queryset(self):
-        return Gasto.objects.filter(viaje__usuario=self.request.user)
+        return self.queryset.filter(viaje__usuario=self.request.user)
 
 
 
