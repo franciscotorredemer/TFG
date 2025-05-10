@@ -632,7 +632,7 @@ class GastoViewSet(viewsets.ModelViewSet):
     ordering_fields = ["fecha", "cantidad"]
 
     def get_queryset(self):
-        return self.queryset.filter(viaje__usuario=self.request.user)
+        return self.queryset.filter(viaje__usuario=self.request.user) #
 
 
 
