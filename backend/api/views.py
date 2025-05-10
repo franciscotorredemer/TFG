@@ -624,15 +624,16 @@ def asociar_hotel_existente(request, viaje_id):
     
 
 class GastoViewSet(viewsets.ModelViewSet):
-    queryset = Gasto.objects.all()
     serializer_class = GastoSerializer
     permission_classes = [IsAuthenticated]
+
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ["viaje"]
     ordering_fields = ["fecha", "cantidad"]
+    ordering = ["fecha"]
 
     def get_queryset(self):
-        return self.queryset.filter(viaje__usuario=self.request.user) #
+        return Gasto.objects.filter(viaje__usuario=self.request.user)
 
 
 

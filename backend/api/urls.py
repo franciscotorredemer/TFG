@@ -34,7 +34,7 @@ router.register(r'actividades_en_viaje', ActividadEnViajeViewSet)
 router.register(r'relacion', RelacionViewSet, basename='relacion')
 router.register(r'viaje_compartido', ViajeCompartidoViewSet, basename="viaje_compartido")
 router.register(r'estancias', EstanciaHotelViewSet)
-router.register(r'gastos', GastoViewSet)
+router.register(r'gastos', GastoViewSet, basename="gasto")
 
 relacion_list = RelacionViewSet.as_view({
     'post': 'create'
