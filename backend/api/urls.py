@@ -3,6 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     ActividadViewSet,
     RegistroViewSet,
+    GastoViewSet,
     obtener_perfil,
     mis_viajes,
     buscar_usuarios,

@@ -7,6 +7,7 @@ import {
   Alert,
   Platform,
   Image,
+  ActivityIndicator,
 } from "react-native"
 import DateTimePicker from "@react-native-community/datetimepicker"
 import { useRoute, useNavigation } from "@react-navigation/native"
@@ -23,6 +24,7 @@ export default function RecomendadoDetalle() {
   const [fechaFin, setFechaFin] = useState(new Date())
   const [showInicioPicker, setShowInicioPicker] = useState(false)
   const [showFinPicker, setShowFinPicker] = useState(false)
+  const [cargando, setCargando] = useState(false)
 
   const crearViaje = async () => {
     if (fechaFin < fechaInicio) {
@@ -32,6 +34,8 @@ export default function RecomendadoDetalle() {
       )
       return
     }
+
+    setCargando(true)
 
     try {
       const token = await AsyncStorage.getItem("access_token")
@@ -83,7 +87,18 @@ export default function RecomendadoDetalle() {
     } catch (error) {
       console.error(error)
       Alert.alert("Error", "Hubo un problema al crear el viaje.")
+    } finally {
+      setCargando(false)
     }
+  }
+
+  if (cargando) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#007AFF" />
+        <Text style={{ marginTop: 10 }}>Creando viaje...</Text>
+      </View>
+    )
   }
 
   return (
@@ -189,5 +204,11 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
 })
