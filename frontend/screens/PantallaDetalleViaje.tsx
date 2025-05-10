@@ -43,6 +43,9 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
   const [gastos, setGastos] = useState<any[]>([]);
   const [mostrarModalGasto, setMostrarModalGasto] = useState(false);
 
+  const totalGastado = gastos.reduce((acc, gasto) => acc + gasto.cantidad, 0);
+  const [orden, setOrden] = useState<"cantidad" | "fecha">("fecha");
+
 
 
 
@@ -63,11 +66,12 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
 
   const obtenerGastosViaje = async () => {
     const token = await AsyncStorage.getItem("access_token");
-    const res = await api.get(`gastos/?viaje=${viajeId}`, {
+    const res = await api.get(`gastos/?viaje=${viajeId}&ordering=${orden === "cantidad" ? "-cantidad" : "-fecha"}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     setGastos(res.data);
   };
+  
   
   const agregarGasto = async (nuevoGasto: any) => {
     const token = await AsyncStorage.getItem("access_token");
@@ -114,8 +118,12 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
 
   useEffect(() => {
     cargarDatos();
-    obtenerGastosViaje();
   }, [viajeId]);
+  
+  useEffect(() => {
+    obtenerGastosViaje();
+  }, [viajeId, orden]);
+  
 
   const confirmarEliminacion = (tipo: "hotel" | "actividad", id: number) => {
     Alert.alert(
@@ -394,6 +402,21 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
       return (
         <View style={{ padding: 10 }}>
           <Text style={estilos.subtitulo}>Gastos del viaje:</Text>
+
+          <View style={{ alignItems: "center", marginVertical: 10 }}>
+            <Text style={{ fontSize: 26, fontWeight: "bold", color: "#007AFF" }}>
+              Total: {totalGastado.toFixed(2)} €
+            </Text>
+          </View>
+
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <Text style={{ fontWeight: "bold" }}>Ordenar por:</Text>
+            <TouchableOpacity onPress={() => setOrden(orden === "fecha" ? "cantidad" : "fecha")}>
+              <Text style={{ color: "#007AFF" }}>
+                {orden === "fecha" ? "Cantidad" : "Fecha"}
+              </Text>
+            </TouchableOpacity>
+          </View>
     
           {gastos.length === 0 ? (
             <Text style={estilos.textoInfo}>No hay gastos registrados</Text>
