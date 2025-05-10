@@ -33,6 +33,11 @@ class HotelSerializer(serializers.ModelSerializer):
         model = Hotel
         fields = '__all__'
 
+class GastoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Gasto
+        fields = '__all__'
+
 class EstanciaHotelSerializer(serializers.ModelSerializer):
     hotel = HotelSerializer()
 
@@ -90,10 +95,7 @@ class ViajeCompartidoSerializer(serializers.ModelSerializer):
         return obj.likes.filter(usuario=user).exists()
     
 
-class GastoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Gasto
-        fields = '__all__'
+
     
 
 

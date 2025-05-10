@@ -20,6 +20,7 @@ import BuscarActividadesHoteles from "../components/BuscarActividadesHoteles";
 import { LugarGoogle } from "../types/typeGoogle";
 
 import ComentarioPubli from "../components/ComentarioPubli";
+import ModalNuevoGasto from "../components/ModalNuevoGasto";
 
 
 
@@ -39,6 +40,9 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
   const [comentario, setComentario] = useState("");
   const [mostrarModalComentario, setMostrarModalComentario] = useState(false);
 
+  const [gastos, setGastos] = useState<any[]>([]);
+  const [mostrarModalGasto, setMostrarModalGasto] = useState(false);
+
 
 
 
@@ -56,6 +60,32 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
     });
     setEstaPublicado(estado.data.publicado);
   };
+
+  const obtenerGastosViaje = async () => {
+    const token = await AsyncStorage.getItem("access_token");
+    const res = await api.get(`gastos/?viaje=${viajeId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    setGastos(res.data);
+  };
+  
+  const agregarGasto = async (nuevoGasto: any) => {
+    const token = await AsyncStorage.getItem("access_token");
+    await api.post("gastos/", { ...nuevoGasto, viaje: viajeId }, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    obtenerGastosViaje();
+  };
+  
+  const borrarGasto = async (id: number) => {
+    const token = await AsyncStorage.getItem("access_token");
+    await api.delete(`gastos/${id}/`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    obtenerGastosViaje();
+  };
+  
+  
 
   const despublicarViaje = () => {
     Alert.alert(
@@ -84,6 +114,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
 
   useEffect(() => {
     cargarDatos();
+    obtenerGastosViaje();
   }, [viajeId]);
 
   const confirmarEliminacion = (tipo: "hotel" | "actividad", id: number) => {
@@ -359,7 +390,39 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
       );
     }
 
-    return <Text style={estilos.textoInfo}>Sección de gastos (pendiente)</Text>;
+    if (pestana === "gastos") {
+      return (
+        <View style={{ padding: 10 }}>
+          <Text style={estilos.subtitulo}>Gastos del viaje:</Text>
+    
+          {gastos.length === 0 ? (
+            <Text style={estilos.textoInfo}>No hay gastos registrados</Text>
+          ) : (
+            gastos.map((gasto) => (
+              <View key={gasto.id} style={estilos.cardHorizontal}>
+                <View style={{ flex: 1 }}>
+                  <Text style={estilos.cardTitulo}>{gasto.concepto}</Text>
+                  <Text style={estilos.cardTexto}>{gasto.categoria} - {gasto.fecha}</Text>
+                  <Text style={estilos.cardTexto}>{gasto.cantidad} €</Text>
+                </View>
+                <TouchableOpacity onPress={() => borrarGasto(gasto.id)}>
+                  <FontAwesome name="trash" size={20} color="red" />
+                </TouchableOpacity>
+              </View>
+            ))
+          )}
+    
+          <View style={{ marginTop: 20 }}>
+            <TouchableOpacity
+              style={[estilos.botonPublicar, estilos.botonAzul]}
+              onPress={() => setMostrarModalGasto(true)}
+            >
+              <Text style={estilos.textoBoton}>Añadir gasto</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      );
+    }
   };
 
   if (!viaje) return <Text style={estilos.textoInfo}>Cargando...</Text>;
@@ -433,6 +496,12 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
               console.error("Error publicando:", err);
             }
           }}
+        />
+
+        <ModalNuevoGasto
+          visible={mostrarModalGasto}
+          onClose={() => setMostrarModalGasto(false)}
+          onGuardar={agregarGasto}
         />
   
       <View style={estilos.botonContenedor}>
