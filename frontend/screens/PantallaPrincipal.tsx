@@ -224,7 +224,7 @@ const PantallaPrincipal: React.FC<PropsPantallaPrincipal> = ({ navigation }) => 
       </ScrollView>
 
       {/* Botón flotante */}
-      <TouchableOpacity style={estilos.botonFlotante} onPress={() => navigation.navigate("NuevoViaje")}>
+      <TouchableOpacity style={estilos.botonFlotante} onPress={() => navigation.navigate("AñadirViaje")}> 
         <Ionicons name="add" size={30} color="#fff" />
       </TouchableOpacity>
     </View>

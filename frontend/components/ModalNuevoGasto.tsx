@@ -23,9 +23,11 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   onGuardar: (gasto: any) => void;
+  fechaInicio: string;
+  fechaFin: string;
 }
 
-const ModalNuevoGasto: React.FC<Props> = ({ visible, onClose, onGuardar }) => {
+const ModalNuevoGasto: React.FC<Props> = ({ visible, onClose, onGuardar, fechaInicio, fechaFin }) => {
   const [concepto, setConcepto] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [categoria, setCategoria] = useState("Comida");
@@ -36,6 +38,15 @@ const ModalNuevoGasto: React.FC<Props> = ({ visible, onClose, onGuardar }) => {
   const guardar = () => {
     if (!concepto || !cantidad) {
       alert("Concepto y cantidad son obligatorios.");
+      return;
+    }
+
+    const fechaGasto = fecha;
+    const inicio = new Date(fechaInicio);
+    const fin = new Date(fechaFin);
+
+    if (fechaGasto < inicio || fechaGasto > fin) {
+      alert("Fecha inválida: La fecha del gasto debe estar dentro del rango del viaje.");
       return;
     }
 

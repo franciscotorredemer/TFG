@@ -22,6 +22,8 @@ import { LugarGoogle } from "../types/typeGoogle";
 import ComentarioPubli from "../components/ComentarioPubli";
 import ModalNuevoGasto from "../components/ModalNuevoGasto";
 
+import { Picker } from "@react-native-picker/picker";
+
 
 
 type Props = StackScreenProps<RootStackParamList, "DetalleViaje">;
@@ -401,7 +403,23 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
     if (pestana === "gastos") {
       return (
         <View style={{ padding: 10 }}>
-          <Text style={estilos.subtitulo}>Gastos del viaje:</Text>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+            <Text style={estilos.subtitulo}>Gastos del viaje:</Text>
+            <TouchableOpacity
+              onPress={() => setMostrarModalGasto(true)}
+              style={{
+                backgroundColor: "#007AFF",
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              <FontAwesome name="plus" size={18} color="#fff" />
+            </TouchableOpacity>
+          </View>
+
 
           <View style={{ alignItems: "center", marginVertical: 10 }}>
             <Text style={{ fontSize: 26, fontWeight: "bold", color: "#007AFF" }}>
@@ -409,14 +427,19 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
             </Text>
           </View>
 
-          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-            <Text style={{ fontWeight: "bold" }}>Ordenar por:</Text>
-            <TouchableOpacity onPress={() => setOrden(orden === "fecha" ? "cantidad" : "fecha")}>
-              <Text style={{ color: "#007AFF" }}>
-                {orden === "fecha" ? "Cantidad" : "Fecha"}
-              </Text>
-            </TouchableOpacity>
+          <View style={{ marginBottom: 10 }}>
+            <Text style={{ fontWeight: "bold", marginBottom: 5 }}>Ordenar por:</Text>
+            <View style={{ borderWidth: 1, borderColor: "#ccc", borderRadius: 8 }}>
+              <Picker
+                selectedValue={orden}
+                onValueChange={(value) => setOrden(value)}
+              >
+                <Picker.Item label="Más reciente" value="fecha" />
+                <Picker.Item label="Mayor cantidad" value="cantidad" />
+              </Picker>
+            </View>
           </View>
+
     
           {gastos.length === 0 ? (
             <Text style={estilos.textoInfo}>No hay gastos registrados</Text>
@@ -427,6 +450,12 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
                   <Text style={estilos.cardTitulo}>{gasto.concepto}</Text>
                   <Text style={estilos.cardTexto}>{gasto.categoria} - {gasto.fecha}</Text>
                   <Text style={estilos.cardTexto}>{gasto.cantidad} €</Text>
+                  {gasto.notas && (
+                    <View>
+                      <Text style={estilos.mapa}>Notas:</Text>
+                      <Text style={estilos.cardTexto}>{gasto.notas}</Text>
+                    </View>
+                  )}
                 </View>
                 <TouchableOpacity onPress={() => borrarGasto(gasto.id)}>
                   <FontAwesome name="trash" size={20} color="red" />
@@ -435,14 +464,6 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
             ))
           )}
     
-          <View style={{ marginTop: 20 }}>
-            <TouchableOpacity
-              style={[estilos.botonPublicar, estilos.botonAzul]}
-              onPress={() => setMostrarModalGasto(true)}
-            >
-              <Text style={estilos.textoBoton}>Añadir gasto</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       );
     }
@@ -495,6 +516,9 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
 
       </ScrollView>
 
+      
+
+
       <ComentarioPubli
           visible={mostrarModalComentario}
           onClose={() => setMostrarModalComentario(false)}
@@ -520,12 +544,13 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
             }
           }}
         />
-
-        <ModalNuevoGasto
-          visible={mostrarModalGasto}
-          onClose={() => setMostrarModalGasto(false)}
-          onGuardar={agregarGasto}
-        />
+            <ModalNuevoGasto
+              visible={mostrarModalGasto}
+              onClose={() => setMostrarModalGasto(false)}
+              onGuardar={agregarGasto}
+              fechaInicio={viaje.fecha_inicio}
+              fechaFin={viaje.fecha_fin}
+            />
   
       <View style={estilos.botonContenedor}>
         <TouchableOpacity

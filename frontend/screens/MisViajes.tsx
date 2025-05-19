@@ -45,7 +45,7 @@ const MisViajes: React.FC<Props> = ({ navigation }) => {
 
     try {
       const token = await AsyncStorage.getItem("access_token")
-      const respuesta = await api.get("mis_viajes/", {
+      const respuesta = await api.get("viajes/", {
         headers: { Authorization: `Bearer ${token}` },
       })
       setListaViajes(respuesta.data)
