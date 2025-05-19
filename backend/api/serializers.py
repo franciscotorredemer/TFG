@@ -23,10 +23,12 @@ class ActividadConFechaSerializer(serializers.ModelSerializer):
     url_imagen = serializers.ReadOnlyField(source='actividad.url_imagen')
     direccion = serializers.ReadOnlyField(source='actividad.direccion')
     ubicacion = serializers.ReadOnlyField(source='actividad.ubicacion')
+    latitud = serializers.ReadOnlyField(source='actividad.latitud')  
+    longitud = serializers.ReadOnlyField(source='actividad.longitud') 
 
     class Meta:
         model = ActividadEnViaje
-        fields = ['id', 'nombre', 'descripcion', 'url_imagen', 'direccion', 'ubicacion', 'fecha_realizacion']
+        fields = ['id', 'nombre', 'descripcion', 'url_imagen', 'direccion', 'ubicacion', 'latitud','longitud', 'fecha_realizacion']
 
 class HotelSerializer(serializers.ModelSerializer):
     class Meta:
