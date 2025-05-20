@@ -7,7 +7,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "frontend",                     
+    "scheme": "frontend",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -15,13 +15,21 @@
     },
     "ios": {
       "bundleIdentifier": "com.viajes.app",
-      "supportsTablet": true
+      "supportsTablet": true,
+      "config": {
+        "googleMapsApiKey": "AIzaSyBU9Nci7z6MicSL-VqMcTu-SJeB85HQzDc"
+      }
     },
     "android": {
       "package": "com.viajes.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
+      },
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyBU9Nci7z6MicSL-VqMcTu-SJeB85HQzDc"
+        }
       }
     },
     "web": {
