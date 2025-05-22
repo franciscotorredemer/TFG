@@ -100,7 +100,8 @@ const PantallaPerfilUsuario = () => {
           style={styles.avatar}
         />
         <Text style={styles.username}>{usuario.username}</Text>
-        <Text style={styles.email}>{usuario.email}</Text>
+      
+        {/* <Text style={styles.email}>{usuario.email}</Text> */}
 
         {usuario.bio ? <Text style={styles.bio}>{usuario.bio}</Text> : null}
         {usuario.ubicacion ? <Text style={styles.location}>{usuario.ubicacion}</Text> : null}
@@ -181,6 +182,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     color: "#333",
+    marginBottom: 10,
   },
   email: {
     color: "#666",
