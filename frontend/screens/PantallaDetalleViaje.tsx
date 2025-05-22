@@ -7,7 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  Platform
+  Platform,
+  ActivityIndicator
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import api from "../services/api";
@@ -21,6 +22,9 @@ import { LugarGoogle } from "../types/typeGoogle";
 
 import ComentarioPubli from "../components/ComentarioPubli";
 import ModalNuevoGasto from "../components/ModalNuevoGasto";
+
+import * as ImagePicker from "expo-image-picker";
+import { subirImagenPerfil } from "../services/subirImagenBucket";
 
 import { Picker } from "@react-native-picker/picker";
 
@@ -47,6 +51,8 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
 
   const totalGastado = gastos.reduce((acc, gasto) => acc + gasto.cantidad, 0);
   const [orden, setOrden] = useState<"cantidad" | "fecha">("fecha");
+
+  const [cargandoImagen, setCargandoImagen] = useState(false);
 
 
 
@@ -90,6 +96,45 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
     });
     obtenerGastosViaje();
   };
+
+  const cambiarImagenViaje = async () => {
+  try {
+    const permisos = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permisos.granted) {
+      Alert.alert("Permiso requerido", "Se necesita permiso para acceder a la galería.");
+      return;
+    }
+
+    const resultado = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.8,
+    });
+
+    if (!resultado.canceled && resultado.assets.length > 0) {
+      setCargandoImagen(true);
+
+      const imagenUri = resultado.assets[0].uri;
+      const url = await subirImagenPerfil(imagenUri, `viaje_${viajeId}`); // reutiliza la función del perfil
+
+      if (url) {
+        const token = await AsyncStorage.getItem("access_token");
+        await api.patch(`viajes/${viajeId}/`, { imagen_destacada: url }, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        await cargarDatos();
+      }
+
+      setCargandoImagen(false);
+    }
+  } catch (err) {
+    console.error("Error al cambiar imagen:", err);
+    Alert.alert("Error", "No se pudo actualizar la imagen del viaje.");
+    setCargandoImagen(false);
+  }
+};
+
   
   
 
@@ -488,7 +533,28 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
           <Image source={require("../assets/imagenes/user.png")} style={estilos.fotoPerfil} />
         </View>
   
-        <Image source={{ uri: viaje.imagen_destacada }} style={estilos.imagenViaje} />
+        <View style={{ position: "relative" }}>
+  <Image source={{ uri: viaje.imagen_destacada }} style={estilos.imagenViaje} />
+
+  <TouchableOpacity
+    onPress={cambiarImagenViaje}
+    style={{
+      position: "absolute",
+      bottom: 10,
+      right: 10,
+      backgroundColor: "#007AFF",
+      padding: 8,
+      borderRadius: 20,
+    }}
+  >
+    {cargandoImagen ? (
+      <ActivityIndicator color="#fff" />
+    ) : (
+      <FontAwesome name="camera" size={18} color="#fff" />
+    )}
+  </TouchableOpacity>
+</View>
+
   
         <View style={estilos.pestanas}>
           <TouchableOpacity onPress={() => setPestana("descripcion")}>
