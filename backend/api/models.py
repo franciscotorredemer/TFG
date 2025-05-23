@@ -63,15 +63,22 @@ class Hotel(models.Model):
     
 
 class Relacion(models.Model):
+    ESTADOS = [
+        ("pendiente", "Pendiente"),
+        ("aceptada", "Aceptada"),
+    ]
+
     seguidor = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="siguiendo", on_delete=models.CASCADE)
     seguido = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="seguidores", on_delete=models.CASCADE)
+    estado = models.CharField(max_length=10, choices=ESTADOS, default="pendiente")
     creado = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         unique_together = ('seguidor', 'seguido')
 
     def __str__(self):
-        return f"{self.seguidor} sigue a {self.seguido}"
+        return f"{self.seguidor.username} → {self.seguido.username} ({self.estado})"
+
     
 
 class ViajeCompartido(models.Model):

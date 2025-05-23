@@ -277,7 +277,7 @@ const PantallaPerfil = ({ navigation }: any) => {
             <View style={estilos.contenedorVacio}>
               <Ionicons name="airplane-outline" size={60} color="#ccc" />
               <Text style={estilos.textoVacio}>No tienes viajes</Text>
-              <TouchableOpacity style={estilos.botonCrearViaje} onPress={() => navigation.navigate("NuevoViaje")}>
+              <TouchableOpacity style={estilos.botonCrearViaje} onPress={() => navigation.navigate("AñadirViaje")}>
                 <Text style={estilos.textoCrearViaje}>Crear nuevo viaje</Text>
               </TouchableOpacity>
             </View>
@@ -318,6 +318,19 @@ const PantallaPerfil = ({ navigation }: any) => {
             </TouchableOpacity>
 
             <View style={estilos.divisorModal} />
+
+            <TouchableOpacity
+                style={estilos.itemModal}
+                onPress={() => {
+                  setModalVisible(false)
+                  navigation.navigate("SolicitudesPendientes")
+                }}
+              >
+                <Ionicons name="mail-unread-outline" size={22} color="#007AFF" style={estilos.iconoModal} />
+                <Text style={estilos.textoItemModal}>Solicitudes de amistad</Text>
+              </TouchableOpacity>
+
+              <View style={estilos.divisorModal} />
 
             <TouchableOpacity
               style={estilos.itemModal}

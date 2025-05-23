@@ -204,7 +204,7 @@ const cargarPerfil = async () => {
     <View style={styles.container}>
       <StatusBar barStyle="dark-content" backgroundColor="#fff" />
       <View style={styles.header}>
-        <Image source={logo} style={styles.logo} />
+        {/*<Image source={logo} style={styles.logo} />*/}
         <View style={styles.headerRight}>
           <Ionicons name="search-outline" style={styles.iconSearch} />
           <TextInput
@@ -267,7 +267,7 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     paddingHorizontal: 16,
     paddingBottom: 10,
   },
@@ -306,6 +306,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 2,
     borderColor: "#D1D1D6",
+    justifyContent: "flex-end",
   },
   sectionTitle: {
     fontSize: 20,

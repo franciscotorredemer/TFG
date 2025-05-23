@@ -45,7 +45,7 @@ interface PropsPantallaPrincipal {
 const PantallaPrincipal: React.FC<PropsPantallaPrincipal> = ({ navigation }) => {
   const [viajes, setViajes] = useState<Viaje[]>([])
   const [cargando, setCargando] = useState(true)
-  const [textoBusqueda, setTextoBusqueda] = useState("")
+ // const [textoBusqueda, setTextoBusqueda] = useState("")
   const [fotoUsuario, setFotoUsuario] = useState<string | null>(null)
 
 
@@ -125,11 +125,9 @@ const PantallaPrincipal: React.FC<PropsPantallaPrincipal> = ({ navigation }) => 
 
       {/* Encabezado */}
       <View style={estilos.encabezado}>
-        <Image source={logo} style={estilos.logo} />
+        
         <View style={estilos.botonesEncabezado}>
-          <TouchableOpacity style={estilos.botonIcono} onPress={() => navigation.navigate("Notificaciones")}>
-            <Ionicons name="notifications-outline" size={24} color="#333" />
-          </TouchableOpacity>
+          
           <TouchableOpacity onPress={() => navigation.navigate("Perfil")} style={estilos.contenedorPerfil}>
             <Image
             source={fotoUsuario ? { uri: fotoUsuario } : fotoPerfil}
@@ -140,7 +138,7 @@ const PantallaPrincipal: React.FC<PropsPantallaPrincipal> = ({ navigation }) => 
       </View>
 
       {/* Buscador */}
-      <View style={estilos.buscador}>
+      {/*<View style={estilos.buscador}>
         <FontAwesome name="search" size={20} color="#666" style={estilos.iconoBuscar} />
         <TextInput
           style={estilos.inputBusqueda}
@@ -154,7 +152,7 @@ const PantallaPrincipal: React.FC<PropsPantallaPrincipal> = ({ navigation }) => 
             <Ionicons name="close-circle" size={20} color="#666" />
           </TouchableOpacity>
         )}
-      </View>
+      </View>*/}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={estilos.scrollContenido}>
         {/* Sección de viajes */}
@@ -243,7 +241,7 @@ const estilos = StyleSheet.create({
   encabezado: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "flex-end", 
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
@@ -252,6 +250,8 @@ const estilos = StyleSheet.create({
   botonesEncabezado: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "flex-end", 
+    flex: 1,
   },
   botonIcono: {
     padding: 8,
