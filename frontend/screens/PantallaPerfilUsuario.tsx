@@ -27,7 +27,7 @@ const PantallaPerfilUsuario = () => {
   const [usuario, setUsuario] = useState<any>(null)
   const [viajes, setViajes] = useState<any[]>([])
   const [cargando, setCargando] = useState(true)
-  const [siguiendo, setSiguiendo] = useState(false)
+  const [estadoRelacion, setEstadoRelacion] = useState<"pendiente" | "aceptada" | null>(null)
   const [procesando, setProcesando] = useState(false)
 
   const cargarDatos = async () => {
@@ -43,7 +43,7 @@ const PantallaPerfilUsuario = () => {
       ])
 
       setUsuario(info.data)
-      setSiguiendo(estado.data.siguiendo)
+      setEstadoRelacion(estado.data.estado)
       setViajes(compartidos.data)
     } catch (error) {
       console.error("Error al cargar perfil de otro usuario:", error)
@@ -53,22 +53,25 @@ const PantallaPerfilUsuario = () => {
   }
 
   const toggleSeguir = async () => {
-    setProcesando(true)
-    try {
-      const token = await AsyncStorage.getItem("access_token")
-      const headers = { Authorization: `Bearer ${token}` }
-      if (siguiendo) {
-        await api.delete(`relacion/${id}/`, { headers })
-      } else {
-        await api.post("relacion/", { seguido: id }, { headers })
-      }
-      setSiguiendo(!siguiendo)
-    } catch (error) {
-      console.error("Error al seguir/dejar de seguir:", error)
-    } finally {
-      setProcesando(false)
+  setProcesando(true)
+  try {
+    const token = await AsyncStorage.getItem("access_token")
+    const headers = { Authorization: `Bearer ${token}` }
+
+    if (estadoRelacion === "aceptada" || estadoRelacion === "pendiente") {
+      await api.delete(`relacion/${id}/`, { headers })
+      setEstadoRelacion(null)
+    } else {
+      await api.post("relacion/", { seguido: id }, { headers })
+      setEstadoRelacion("pendiente")
     }
+  } catch (error) {
+    console.error("Error al seguir/dejar de seguir:", error)
+  } finally {
+    setProcesando(false)
   }
+}
+
 
   useEffect(() => {
     cargarDatos()
@@ -107,18 +110,31 @@ const PantallaPerfilUsuario = () => {
         {usuario.ubicacion ? <Text style={styles.location}>{usuario.ubicacion}</Text> : null}
 
         <TouchableOpacity
-          style={[styles.followButton, siguiendo ? styles.following : styles.notFollowing]}
+          style={[
+            styles.followButton,
+            estadoRelacion === "aceptada" ? styles.following : styles.notFollowing
+          ]}
           onPress={toggleSeguir}
-          disabled={procesando}
+          disabled={procesando || estadoRelacion === "pendiente"}
         >
           {procesando ? (
-            <ActivityIndicator size="small" color={siguiendo ? "#fff" : "#007AFF"} />
+            <ActivityIndicator size="small" color={estadoRelacion === "aceptada" ? "#fff" : "#007AFF"} />
           ) : (
-            <Text style={[styles.followText, siguiendo ? styles.whiteText : styles.blueText]}>
-              {siguiendo ? "Siguiendo" : "Seguir"}
+            <Text
+              style={[
+                styles.followText,
+                estadoRelacion === "aceptada" ? styles.whiteText : styles.blueText
+              ]}
+            >
+              {estadoRelacion === "pendiente"
+                ? "Pendiente"
+                : estadoRelacion === "aceptada"
+                ? "Siguiendo"
+                : "Seguir"}
             </Text>
           )}
         </TouchableOpacity>
+
       </View>
 
       <View style={styles.sectionTitleBox}>

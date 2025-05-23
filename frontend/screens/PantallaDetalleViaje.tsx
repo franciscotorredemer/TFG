@@ -42,6 +42,7 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [modoBusqueda, setModoBusqueda] = useState<"actividad" | "hotel" | null>(null);
   const [fechaSeleccionada, setFechaSeleccionada] = useState<string | null>(null);
+  const [usuario, setUsuario] = useState<any>(null);
 
   const [comentario, setComentario] = useState("");
   const [mostrarModalComentario, setMostrarModalComentario] = useState(false);
@@ -58,19 +59,20 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
 
 
   const cargarDatos = async () => {
-    const token = await AsyncStorage.getItem("access_token");
-    const respuestaViaje = await api.get(`viajes/${viajeId}/`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setViaje(respuestaViaje.data);
-    setNotas(respuestaViaje.data.notas?.split("\n").filter((n: string) => n.trim()) || []);
+      const token = await AsyncStorage.getItem("access_token");
+      const headers = { Authorization: `Bearer ${token}` };
 
+      const [respuestaViaje, respuestaUsuario, estado] = await Promise.all([
+        api.get(`viajes/${viajeId}/`, { headers }),
+        api.get(`perfil/`, { headers }),
+        api.get(`viaje_compartido/${viajeId}/esta_publicado/`, { headers }),
+      ]);
 
-    const estado = await api.get(`viaje_compartido/${viajeId}/esta_publicado/`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    setEstaPublicado(estado.data.publicado);
-  };
+      setViaje(respuestaViaje.data);
+      setUsuario(respuestaUsuario.data);
+      setNotas(respuestaViaje.data.notas?.split("\n").filter((n: string) => n.trim()) || []);
+      setEstaPublicado(estado.data.publicado);
+    };
 
   const obtenerGastosViaje = async () => {
     const token = await AsyncStorage.getItem("access_token");
@@ -530,7 +532,10 @@ const PantallaDetalleViaje: React.FC<Props> = ({ navigation, route }) => {
               {new Date(viaje.fecha_fin).toLocaleDateString()}
             </Text>
           </View>
-          <Image source={require("../assets/imagenes/user.png")} style={estilos.fotoPerfil} />
+          <Image
+            source={usuario?.foto_perfil ? { uri: usuario.foto_perfil } : require("../assets/imagenes/user.png")}
+            style={estilos.fotoPerfil}
+          />
         </View>
   
         <View style={{ position: "relative" }}>

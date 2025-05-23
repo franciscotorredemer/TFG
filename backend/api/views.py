@@ -164,14 +164,24 @@ class RelacionViewSet(viewsets.ViewSet):
 
     def create(self, request):
         seguido_id = request.data.get("seguido")
-        if seguido_id == request.user.id:
-            return Response({"error": "No puedes seguirte a ti mismo."}, status=400)
 
-        if Relacion.objects.filter(seguidor=request.user, seguido_id=seguido_id).exists():
-            return Response({"error": "Ya sigues a este usuario."}, status=400)
+        if not seguido_id:
+            return Response({"error": "Falta el ID del usuario a seguir"}, status=400)
 
-        relacion = Relacion.objects.create(seguidor=request.user, seguido_id=seguido_id)
-        return Response(RelacionSerializer(relacion).data, status=201)
+        if int(seguido_id) == request.user.id:
+            return Response({"error": "No puedes enviarte una solicitud a ti mismo."}, status=400)
+
+        existente = Relacion.objects.filter(seguidor=request.user, seguido_id=seguido_id).first()
+        if existente:
+            return Response({"error": f"Ya existe una solicitud o relación ({existente.estado})."}, status=400)
+
+        nueva = Relacion.objects.create(
+            seguidor=request.user,
+            seguido_id=seguido_id,
+            estado="pendiente"
+        )
+        return Response(RelacionSerializer(nueva).data, status=201)
+
 
     def destroy(self, request, pk=None):
         try:
@@ -197,14 +207,37 @@ class RelacionViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], url_path='seguimientos')
     def seguidos(self, request):
-        relaciones = Relacion.objects.filter(seguidor=request.user)
-        data = [{"id": r.seguido.id, "username": r.seguido.username, "foto_perfil" : r.seguido.foto_perfil} for r in relaciones]
+        relaciones = Relacion.objects.filter(seguidor=request.user, estado="aceptada")
+        data = [{
+            "id": r.seguido.id,
+            "username": r.seguido.username,
+            "foto_perfil": r.seguido.foto_perfil,
+            "bio": r.seguido.bio,
+        } for r in relaciones]
         return Response(data)
+
 
     @action(detail=False, methods=['get'], url_path='seguidores')
     def seguidores(self, request):
-        relaciones = Relacion.objects.filter(seguido=request.user)
-        data = [{"id": r.seguidor.id, "username": r.seguidor.username, "foto_perfil": r.seguidor.foto_perfil} for r in relaciones]
+        relaciones = Relacion.objects.filter(seguido=request.user, estado="aceptada")
+        data = [{
+            "id": r.seguidor.id,
+            "username": r.seguidor.username,
+            "foto_perfil": r.seguidor.foto_perfil,
+            "bio": r.seguidor.bio,
+        } for r in relaciones]
+        return Response(data)
+    
+    @action(detail=False, methods=["get"], url_path="solicitudes")
+    def solicitudes_pendientes(self, request):
+        solicitudes = Relacion.objects.filter(seguido=request.user, estado="pendiente")
+        data = [{
+            "relacion_id": r.id, 
+            "id": r.seguidor.id,
+            "username": r.seguidor.username,
+            "foto_perfil": r.seguidor.foto_perfil,
+            "bio": r.seguidor.bio,
+        } for r in solicitudes]
         return Response(data)
 
     @action(detail=True, methods=['get'], url_path='info')
@@ -218,12 +251,30 @@ class RelacionViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], url_path='contador')
     def contador(self, request):
-        seguidores = Relacion.objects.filter(seguido=request.user).count()
-        siguiendo = Relacion.objects.filter(seguidor=request.user).count()
+        seguidores = Relacion.objects.filter(seguido=request.user, estado="aceptada").count()
+        siguiendo = Relacion.objects.filter(seguidor=request.user, estado="aceptada").count()
         return Response({
             "siguiendo": siguiendo,
             "seguidores": seguidores
         })
+    
+    @action(detail=True, methods=["post"], url_path="aceptar")
+    def aceptar_solicitud(self, request, pk=None):
+        try:
+            relacion = Relacion.objects.get(id=pk, seguido=request.user, estado="pendiente")
+            relacion.estado = "aceptada"
+            relacion.save()
+            return Response({"mensaje": "Solicitud aceptada"}, status=200)
+        except Relacion.DoesNotExist:
+            return Response({"error": "Solicitud no encontrada o ya procesada"}, status=404)
+        
+    @action(detail=True, methods=["get"], url_path="estado")
+    def estado(self, request, pk=None):
+        try:
+            relacion = Relacion.objects.get(seguidor=request.user, seguido_id=pk)
+            return Response({"estado": relacion.estado})
+        except Relacion.DoesNotExist:
+            return Response({"estado": None})
     
 
 class ViajeCompartidoViewSet(viewsets.ModelViewSet):

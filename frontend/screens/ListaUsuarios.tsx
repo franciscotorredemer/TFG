@@ -28,7 +28,7 @@ interface Usuario {
   id: number
   username: string
   foto_perfil?: string
-  siguiendo: boolean
+  estado?: "pendiente" | "aceptada" | null
   bio?: string
 }
 
@@ -65,28 +65,19 @@ const ListaUsuarios = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
 
-      let usuariosData: Usuario[] = []
+      const usuariosData: Usuario[] = await Promise.all(
+        res.data.map(async (u: any) => {
+          try {
+            const estado = await api.get(`relacion/${u.id}/estado/`, {
+              headers: { Authorization: `Bearer ${token}` },
+            })
+            return { ...u, estado: estado.data.estado as "pendiente" | "aceptada" | null }
+          } catch {
+            return { ...u, estado: null }
+          }
+        })
+      )
 
-      if (modo === "siguiendo") {
-        usuariosData = res.data.map((u: any) => ({
-          ...u,
-          siguiendo: true,
-        }))
-      } else {
-        usuariosData = await Promise.all(
-          res.data.map(async (u: any) => {
-            try {
-              const estado = await api.get(`relacion/${u.id}/estado/`, {
-                headers: { Authorization: `Bearer ${token}` },
-              })
-              return { ...u, siguiendo: estado.data.siguiendo }
-            } catch (error) {
-              console.error(`Error fetching relationship status for user ${u.id}:`, error)
-              return { ...u, siguiendo: false }
-            }
-          }),
-        )
-      }
 
       setUsuarios(usuariosData)
       setFilteredUsuarios(usuariosData)
@@ -113,7 +104,14 @@ const ListaUsuarios = () => {
     }
   }
 
-  const toggleSeguir = async (usuarioId: number, actualmenteSiguiendo: boolean) => {
+  const actualizarEstado = (id: number, estado: "pendiente" | "aceptada" | null) => {
+      const update = (list: Usuario[]) => list.map(u => u.id === id ? { ...u, estado } : u)
+      setUsuarios(update)
+      setFilteredUsuarios(update)
+    }
+
+
+  const toggleSeguir = async (usuarioId: number, estadoActual: "pendiente" | "aceptada" | null) => {
     
     setProcessingIds((prev) => [...prev, usuarioId])
 
@@ -124,36 +122,19 @@ const ListaUsuarios = () => {
         return
       }
 
-      if (actualmenteSiguiendo) {
-        await api.delete(`relacion/${usuarioId}/`, {
-          headers: { Authorization: `Bearer ${token}` },
-        })
+      if (estadoActual === "aceptada" || estadoActual === "pendiente") {
+        await api.delete(`relacion/${usuarioId}/`, { headers: { Authorization: `Bearer ${token}` } })
+        actualizarEstado(usuarioId, null)
       } else {
-        await api.post(
-          "relacion/",
-          { seguido: usuarioId },
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          },
-        )
+        await api.post("relacion/", { seguido: usuarioId }, { headers: { Authorization: `Bearer ${token}` } })
+        actualizarEstado(usuarioId, "pendiente")
       }
-
-      // Actualizamos las listas
-      const updateUser = (list: Usuario[]) =>
-        list.map((u) => (u.id === usuarioId ? { ...u, siguiendo: !actualmenteSiguiendo } : u))
-
-      setUsuarios(updateUser)
-      setFilteredUsuarios(updateUser)
     } catch (err) {
-      console.error("Error al actualizar relación:", err)
-      Alert.alert(
-        "Error",
-        actualmenteSiguiendo ? "No se pudo dejar de seguir al usuario" : "No se pudo seguir al usuario",
-      )
+      Alert.alert("Error", "No se pudo actualizar la relación.")
     } finally {
-      
       setProcessingIds((prev) => prev.filter((id) => id !== usuarioId))
     }
+
   }
 
   const eliminarSeguidor = (usuario: Usuario) => {
@@ -247,7 +228,7 @@ const ListaUsuarios = () => {
 
   const renderItem = ({ item, index }: { item: Usuario; index: number }) => {
     const isProcessing = processingIds.includes(item.id)
-    const siguiendo = item.siguiendo
+    const estado = item.estado
     
 
     // Aqui usamos esto para hacer una animacion segun el tiempo
@@ -280,26 +261,21 @@ const ListaUsuarios = () => {
             <TouchableOpacity
               style={[
                 styles.followButton,
-                siguiendo ? styles.followingButton : styles.notFollowingButton,
+                estado === "aceptada" ? styles.followingButton : styles.notFollowingButton,
                 isProcessing && styles.processingButton,
               ]}
-              onPress={() => toggleSeguir(item.id, siguiendo)}
-              disabled={isProcessing}
+              onPress={() => toggleSeguir(item.id, estado)}
+              disabled={isProcessing || estado === "pendiente"}
             >
               {isProcessing ? (
-                <ActivityIndicator size="small" color={siguiendo ? "#fff" : "#007AFF"} />
+                <ActivityIndicator size="small" color={estado === "aceptada" ? "#fff" : "#007AFF"} />
               ) : (
-                <>
-                  {siguiendo && <Ionicons name="checkmark" size={16} color="#fff" style={styles.buttonIcon} />}
-                  <Text
-                    style={[
-                      styles.followButtonText,
-                      siguiendo ? styles.followingButtonText : styles.notFollowingButtonText,
-                    ]}
-                  >
-                    {siguiendo ? "Siguiendo" : "Seguir"}
-                  </Text>
-                </>
+                <Text style={[
+                  styles.followButtonText,
+                  estado === "aceptada" ? styles.followingButtonText : styles.notFollowingButtonText,
+                ]}>
+                  {estado === "pendiente" ? "Pendiente" : estado === "aceptada" ? "Siguiendo" : "Seguir"}
+                </Text>
               )}
             </TouchableOpacity>
           ) : (

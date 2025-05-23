@@ -46,7 +46,7 @@ export const PantallaDetalleCompartido = () => {
   
       setAutor({
         ...autorInfo.data,
-        siguiendo: estado.data.siguiendo,
+        estadoRelacion: estado.data.estado, // "pendiente" | "aceptada" | null
       })
     } catch (error) {
       console.error("Error al cargar datos del viaje compartido", error)
@@ -94,24 +94,20 @@ export const PantallaDetalleCompartido = () => {
       const token = await AsyncStorage.getItem("access_token")
       const headers = { Authorization: `Bearer ${token}` }
 
-     
-
-      if (autor.siguiendo) {
+      if (autor.estadoRelacion === "aceptada" || autor.estadoRelacion === "pendiente") {
         await api.delete(`relacion/${autor.id}/`, { headers })
+        setAutor((prev: any) => ({ ...prev, estadoRelacion: null }))
       } else {
         await api.post("relacion/", { seguido: autor.id }, { headers })
+        setAutor((prev: any) => ({ ...prev, estadoRelacion: "pendiente" }))
       }
-
-      setAutor((prev: any) => ({
-        ...prev,
-        siguiendo: !prev.siguiendo,
-      }))
     } catch (error) {
       console.error("Error al actualizar seguimiento", error)
     } finally {
       setIsProcessing(false)
     }
   }
+
 
   useEffect(() => {
     cargarDatos()
@@ -170,28 +166,38 @@ export const PantallaDetalleCompartido = () => {
         </TouchableOpacity>
         {usuarioId !== autor.id && (
         <TouchableOpacity
-          style={[styles.followButton, autor.siguiendo ? styles.followingButton : styles.notFollowingButton]}
-          onPress={toggleSeguir}
-          disabled={isProcessing}
-        >
-          {isProcessing ? (
-            <ActivityIndicator size="small" color={autor.siguiendo ? "#fff" : "#007AFF"} />
-          ) : (
-            <>
-              {autor.siguiendo && (
-                <Ionicons name="checkmark" size={16} color="#fff" style={styles.buttonIcon} />
-              )}
-              <Text
-                style={[
-                  styles.followButtonText,
-                  autor.siguiendo ? styles.followingButtonText : styles.notFollowingButtonText,
-                ]}
-              >
-                {autor.siguiendo ? "Siguiendo" : "Seguir"}
-              </Text>
-            </>
-          )}
-        </TouchableOpacity>
+            style={[
+              styles.followButton,
+              autor.estadoRelacion === "aceptada" ? styles.followingButton : styles.notFollowingButton,
+            ]}
+            onPress={toggleSeguir}
+            disabled={isProcessing || autor.estadoRelacion === "pendiente"}
+          >
+            {isProcessing ? (
+              <ActivityIndicator size="small" color={autor.estadoRelacion === "aceptada" ? "#fff" : "#007AFF"} />
+            ) : (
+              <>
+                {autor.estadoRelacion === "aceptada" && (
+                  <Ionicons name="checkmark" size={16} color="#fff" style={styles.buttonIcon} />
+                )}
+                <Text
+                  style={[
+                    styles.followButtonText,
+                    autor.estadoRelacion === "aceptada"
+                      ? styles.followingButtonText
+                      : styles.notFollowingButtonText,
+                  ]}
+                >
+                  {autor.estadoRelacion === "pendiente"
+                    ? "Pendiente"
+                    : autor.estadoRelacion === "aceptada"
+                    ? "Siguiendo"
+                    : "Seguir"}
+                </Text>
+              </>
+            )}
+          </TouchableOpacity>
+
       )}
 
         </View>
