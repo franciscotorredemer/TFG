@@ -12,7 +12,7 @@ from rest_framework import filters
 from .serializers import ViajeCompartidoSerializer, GastoSerializer
 from django.utils.timezone import now, timedelta
 from google.oauth2 import id_token
-from google.auth.transport import requests
+from google.auth.transport import requests as google_requests
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.views import APIView
 import random, requests
@@ -124,12 +124,14 @@ class ActividadEnViajeViewSet(viewsets.ModelViewSet):
 class GoogleLoginView(APIView):
     def post(self, request):
         access_token = request.data.get("access_token")
+        print("🔑 access_token recibido:", access_token)  # Debug
 
         if not access_token:
             return Response({"error": "Falta el token de Google"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            idinfo = id_token.verify_oauth2_token(access_token, requests.Request())
+            idinfo = id_token.verify_oauth2_token(access_token, google_requests.Request())
+            print("🆔 Google ID Info:", idinfo)  # Debug
 
             email = idinfo.get("email")
             username = idinfo.get("name") or email.split("@")[0]
@@ -140,13 +142,12 @@ class GoogleLoginView(APIView):
 
             user, created = CustomUser.objects.get_or_create(email=email, defaults={
                 "username": username,
-                "foto_perfil": picture,  # guarda la imagen si viene
-                "es_google": True,
+                "foto_perfil": picture,
+                "es_google": True,  # ← MUY IMPORTANTE
             })
 
             if created:
                 user.set_unusable_password()
-               
                 user.save()
 
             refresh = RefreshToken.for_user(user)
@@ -154,14 +155,18 @@ class GoogleLoginView(APIView):
             return Response({
                 "access": str(refresh.access_token),
                 "refresh": str(refresh),
-                "user": CustomUserSerializer(user).data
+                "user": CustomUserSerializer(user).data,
+                "created": created  # ← Esto evita el error en el frontend
             })
 
         except ValueError as e:
+            print("❌ ValueError en verificación de token:", str(e))
             return Response({"error": f"Token no válido: {str(e)}"}, status=400)
 
         except Exception as e:
+            print("❌ Error general en GoogleLoginView:", str(e))
             return Response({"error": str(e)}, status=500)
+
 
 
 class RelacionViewSet(viewsets.ViewSet):
