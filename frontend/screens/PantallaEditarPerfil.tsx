@@ -38,6 +38,7 @@ interface UserProfile {
   foto_perfil_actual?: string
   bio?: string
   ubicacion?: string
+  es_google?: boolean 
 }
 
 
@@ -96,13 +97,14 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
         headers: { Authorization: `Bearer ${token}` },
       })
       setProfile({
-        username: response.data.username,
-        email: response.data.email,
-        foto_perfil: response.data.foto_perfil,
-        foto_perfil_actual: response.data.foto_perfil,
-        bio: response.data.bio,
-        ubicacion: response.data.ubicacion,
-      })
+      username: response.data.username,
+      email: response.data.email,
+      foto_perfil: response.data.foto_perfil,
+      foto_perfil_actual: response.data.foto_perfil,
+      bio: response.data.bio,
+      ubicacion: response.data.ubicacion,
+      es_google: response.data.es_google, // ← NUEVO
+    })
     } catch (error) {
       console.error("Error al cargar perfil:", error)
       Alert.alert("Error", "No se pudo cargar tu perfil. Intenta de nuevo más tarde.")
@@ -262,181 +264,187 @@ const PantallaEditarPerfil: React.FC<Props> = ({ navigation }) => {
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+  <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.container}>
+    <StatusBar barStyle="dark-content" backgroundColor="#fff" />
 
-      {/* Encabezado */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={handleBackPress}
-          style={styles.backButton}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="chevron-back" size={28} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Editar perfil</Text>
-        <View style={{ width: 28 }} />
-      </View>
+    {/* Encabezado */}
+    <View style={styles.header}>
+      <TouchableOpacity
+        onPress={handleBackPress}
+        style={styles.backButton}
+        hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+      >
+        <Ionicons name="chevron-back" size={28} color="#333" />
+      </TouchableOpacity>
+      <Text style={styles.headerTitle}>Editar perfil</Text>
+      <View style={{ width: 28 }} />
+    </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
-        <Animated.View style={[styles.formContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+      <Animated.View style={[styles.formContainer, { opacity: fadeAnim, transform: [{ translateY: slideAnim }] }]}>
         
-          <View style={styles.profileImageContainer}>
-            {imageLoading ? (
-              <View style={styles.imageLoading}>
-                <ActivityIndicator size="small" color="#fff" />
-              </View>
-            ) : (
-              <Image
-                source={profile.foto_perfil ? { uri: profile.foto_perfil } : require("../assets/imagenes/user.png")}
-                style={styles.profileImage}
-              />
-            )}
-            <TouchableOpacity style={styles.changePhotoButton} onPress={handlePickImage} disabled={imageLoading}>
-              <Ionicons name="camera" size={18} color="#fff" />
-            </TouchableOpacity>
-          </View>
-
-          <Text style={styles.changePhotoText}>Toca para cambiar tu foto</Text>
-
-          {/* Formularios*/}
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Nombre de usuario</Text>
-            <View style={[styles.inputContainer, errors.username ? styles.inputError : null]}>
-              <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                value={profile.username}
-                onChangeText={(text) => handleInputChange("username", text)}
-                placeholder="Tu nombre de usuario"
-                returnKeyType="next"
-                onSubmitEditing={() => bioInputRef.current?.focus()}
-              />
-            </View>
-            {errors.username ? <Text style={styles.errorText}>{errors.username}</Text> : null}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Biografía</Text>
-            <View style={styles.inputContainer}>
-              <Ionicons name="information-circle-outline" size={20} color="#666" style={styles.inputIcon} />
-              <TextInput
-                ref={bioInputRef}
-                style={styles.input}
-                value={profile.bio}
-                onChangeText={(text) => handleInputChange("bio", text)}
-                placeholder="Cuéntanos sobre ti"
-                multiline
-                numberOfLines={3}
-                returnKeyType="next"
-                onSubmitEditing={() => locationInputRef.current?.focus()}
-              />
-            </View>
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Ubicación</Text>
-            <View style={styles.inputContainer}>
-              <Ionicons name="location-outline" size={20} color="#666" style={styles.inputIcon} />
-              <TextInput
-                ref={locationInputRef}
-                style={styles.input}
-                value={profile.ubicacion}
-                onChangeText={(text) => handleInputChange("ubicacion", text)}
-                placeholder="Tu ciudad o país"
-                returnKeyType="next"
-                onSubmitEditing={() => passwordInputRef.current?.focus()}
-              />
-            </View>
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Email</Text>
-            <View style={styles.inputContainer}>
-              <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
-              <TextInput
-                style={[styles.input, { color: "#999" }]}
-                value={profile.email}
-                editable={false}
-                placeholder="Tu email"
-              />
-            </View>
-            <Text style={styles.helperText}>El email no se puede cambiar</Text>
-          </View>
-
-          <View style={styles.sectionDivider} />
-          <Text style={styles.sectionTitle}>Cambiar contraseña</Text>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Nueva contraseña</Text>
-            <View style={[styles.inputContainer, errors.password ? styles.inputError : null]}>
-              <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
-              <TextInput
-                ref={passwordInputRef}
-                style={styles.input}
-                value={password}
-                onChangeText={(text) => {
-                  setPassword(text)
-                  setHasChanges(true)
-                  if (errors.password) {
-                    setErrors((prev) => ({ ...prev, password: "" }))
-                  }
-                }}
-                placeholder="Deja en blanco si no quieres cambiarla"
-                secureTextEntry={!showPassword}
-                returnKeyType="next"
-                onSubmitEditing={() => confirmPasswordInputRef.current?.focus()}
-              />
-              <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.passwordToggle}>
-                <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#666" />
-              </TouchableOpacity>
-            </View>
-            {errors.password ? (
-              <Text style={styles.errorText}>{errors.password}</Text>
-            ) : (
-              <Text style={styles.helperText}>Mínimo 6 caracteres</Text>
-            )}
-          </View>
-
-          <View style={styles.formGroup}>
-            <Text style={styles.label}>Confirmar contraseña</Text>
-            <View style={[styles.inputContainer, errors.confirmPassword ? styles.inputError : null]}>
-              <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
-              <TextInput
-                ref={confirmPasswordInputRef}
-                style={styles.input}
-                value={confirmPassword}
-                onChangeText={(text) => {
-                  setConfirmPassword(text)
-                  setHasChanges(true)
-                  if (errors.confirmPassword) {
-                    setErrors((prev) => ({ ...prev, confirmPassword: "" }))
-                  }
-                }}
-                placeholder="Repite la nueva contraseña"
-                secureTextEntry={!showPassword}
-                returnKeyType="done"
-                onSubmitEditing={handleGuardar}
-              />
-            </View>
-            {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
-          </View>
-
-          <TouchableOpacity
-            style={[styles.saveButton, isSaving ? styles.saveButtonDisabled : null]}
-            onPress={handleGuardar}
-            disabled={isSaving}
-          >
-            {isSaving ? (
+        <View style={styles.profileImageContainer}>
+          {imageLoading ? (
+            <View style={styles.imageLoading}>
               <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <Text style={styles.saveButtonText}>Guardar cambios</Text>
-            )}
+            </View>
+          ) : (
+            <Image
+              source={profile.foto_perfil ? { uri: profile.foto_perfil } : require("../assets/imagenes/user.png")}
+              style={styles.profileImage}
+            />
+          )}
+          <TouchableOpacity style={styles.changePhotoButton} onPress={handlePickImage} disabled={imageLoading}>
+            <Ionicons name="camera" size={18} color="#fff" />
           </TouchableOpacity>
-        </Animated.View>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  )
+        </View>
+
+        <Text style={styles.changePhotoText}>Toca para cambiar tu foto</Text>
+
+        {/* Formularios */}
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Nombre de usuario</Text>
+          <View style={[styles.inputContainer, errors.username ? styles.inputError : null]}>
+            <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
+            <TextInput
+              style={styles.input}
+              value={profile.username}
+              onChangeText={(text) => handleInputChange("username", text)}
+              placeholder="Tu nombre de usuario"
+              returnKeyType="next"
+              onSubmitEditing={() => bioInputRef.current?.focus()}
+            />
+          </View>
+          {errors.username ? <Text style={styles.errorText}>{errors.username}</Text> : null}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Biografía</Text>
+          <View style={styles.inputContainer}>
+            <Ionicons name="information-circle-outline" size={20} color="#666" style={styles.inputIcon} />
+            <TextInput
+              ref={bioInputRef}
+              style={styles.input}
+              value={profile.bio}
+              onChangeText={(text) => handleInputChange("bio", text)}
+              placeholder="Cuéntanos sobre ti"
+              multiline
+              numberOfLines={3}
+              returnKeyType="next"
+              onSubmitEditing={() => locationInputRef.current?.focus()}
+            />
+          </View>
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Ubicación</Text>
+          <View style={styles.inputContainer}>
+            <Ionicons name="location-outline" size={20} color="#666" style={styles.inputIcon} />
+            <TextInput
+              ref={locationInputRef}
+              style={styles.input}
+              value={profile.ubicacion}
+              onChangeText={(text) => handleInputChange("ubicacion", text)}
+              placeholder="Tu ciudad o país"
+              returnKeyType="next"
+              onSubmitEditing={() => passwordInputRef.current?.focus()}
+            />
+          </View>
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Email</Text>
+          <View style={styles.inputContainer}>
+            <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
+            <TextInput
+              style={[styles.input, { color: "#999" }]}
+              value={profile.email}
+              editable={false}
+              placeholder="Tu email"
+            />
+          </View>
+          <Text style={styles.helperText}>El email no se puede cambiar</Text>
+        </View>
+
+        {/* Condicional: Cambiar contraseña solo si no es cuenta de Google */}
+        {!profile.es_google && (
+          <>
+            <View style={styles.sectionDivider} />
+            <Text style={styles.sectionTitle}>Cambiar contraseña</Text>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Nueva contraseña</Text>
+              <View style={[styles.inputContainer, errors.password ? styles.inputError : null]}>
+                <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+                <TextInput
+                  ref={passwordInputRef}
+                  style={styles.input}
+                  value={password}
+                  onChangeText={(text) => {
+                    setPassword(text)
+                    setHasChanges(true)
+                    if (errors.password) {
+                      setErrors((prev) => ({ ...prev, password: "" }))
+                    }
+                  }}
+                  placeholder="Deja en blanco si no quieres cambiarla"
+                  secureTextEntry={!showPassword}
+                  returnKeyType="next"
+                  onSubmitEditing={() => confirmPasswordInputRef.current?.focus()}
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.passwordToggle}>
+                  <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={20} color="#666" />
+                </TouchableOpacity>
+              </View>
+              {errors.password ? (
+                <Text style={styles.errorText}>{errors.password}</Text>
+              ) : (
+                <Text style={styles.helperText}>Mínimo 6 caracteres</Text>
+              )}
+            </View>
+
+            <View style={styles.formGroup}>
+              <Text style={styles.label}>Confirmar contraseña</Text>
+              <View style={[styles.inputContainer, errors.confirmPassword ? styles.inputError : null]}>
+                <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+                <TextInput
+                  ref={confirmPasswordInputRef}
+                  style={styles.input}
+                  value={confirmPassword}
+                  onChangeText={(text) => {
+                    setConfirmPassword(text)
+                    setHasChanges(true)
+                    if (errors.confirmPassword) {
+                      setErrors((prev) => ({ ...prev, confirmPassword: "" }))
+                    }
+                  }}
+                  placeholder="Repite la nueva contraseña"
+                  secureTextEntry={!showPassword}
+                  returnKeyType="done"
+                  onSubmitEditing={handleGuardar}
+                />
+              </View>
+              {errors.confirmPassword ? <Text style={styles.errorText}>{errors.confirmPassword}</Text> : null}
+            </View>
+          </>
+        )}
+
+        <TouchableOpacity
+          style={[styles.saveButton, isSaving ? styles.saveButtonDisabled : null]}
+          onPress={handleGuardar}
+          disabled={isSaving}
+        >
+          {isSaving ? (
+            <ActivityIndicator size="small" color="#fff" />
+          ) : (
+            <Text style={styles.saveButtonText}>Guardar cambios</Text>
+          )}
+        </TouchableOpacity>
+      </Animated.View>
+    </ScrollView>
+  </KeyboardAvoidingView>
+)
+
 }
 
 const styles = StyleSheet.create({

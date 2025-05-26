@@ -61,6 +61,9 @@ def obtener_perfil(request):
         if "password" in data and data["password"]:
             data["password"] = make_password(data["password"])
 
+        if request.user.es_google and "password" in request.data:
+            return Response({"error": "No puedes establecer contraseña si has iniciado sesión con Google."}, status=400)
+
         serializer = CustomUserSerializer(usuario, data=data, partial=True)
         if serializer.is_valid():
             serializer.save()
@@ -138,10 +141,12 @@ class GoogleLoginView(APIView):
             user, created = CustomUser.objects.get_or_create(email=email, defaults={
                 "username": username,
                 "foto_perfil": picture,  # guarda la imagen si viene
+                "es_google": True,
             })
 
             if created:
                 user.set_unusable_password()
+               
                 user.save()
 
             refresh = RefreshToken.for_user(user)

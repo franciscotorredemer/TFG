@@ -20,6 +20,7 @@ class CustomUser(AbstractUser):
     foto_perfil = models.URLField(blank=True, null=True) 
     bio = models.TextField(blank=True, null=True)
     ubicacion = models.CharField(max_length=255, blank=True, null=True)
+    es_google = models.BooleanField(default=False) 
 
     def __str__(self):
         return self.username  # Retorna el nombre de usuario
