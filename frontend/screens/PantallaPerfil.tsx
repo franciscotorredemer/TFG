@@ -23,11 +23,12 @@ import { Ionicons } from "@expo/vector-icons"
 const avatarPorDefecto = require("../assets/imagenes/user.png")
 
 interface Usuario {
-  nombre_usuario: string
-  correo: string
-  foto_perfil?: string
-  bio?: string
-  ubicacion?: string
+  nombre_usuario: string;
+  correo: string;
+  foto_perfil?: string;
+  bio?: string;
+  ubicacion?: string;
+  es_google?: boolean;
 }
 
 interface Viaje {
@@ -76,7 +77,8 @@ const PantallaPerfil = ({ navigation }: any) => {
         foto_perfil: perfilRes.data.foto_perfil,
         bio: perfilRes.data.bio,
         ubicacion: perfilRes.data.ubicacion,
-      })
+        es_google: perfilRes.data.es_google, 
+      });
       setViajes(viajesRes.data)
       setSeguidos(relacionRes.data.siguiendo)
       setSeguidores(relacionRes.data.seguidores)
@@ -214,9 +216,11 @@ const PantallaPerfil = ({ navigation }: any) => {
         <View style={estilos.seccionPerfil}>
           <View style={estilos.contenedorAvatar}>
             <Image source={usuario?.foto_perfil ? { uri: usuario.foto_perfil } : avatarPorDefecto} style={estilos.avatar} />
-            <TouchableOpacity style={estilos.botonCamara} onPress={() => navigation.navigate("EditarPerfil")}>
-              <Ionicons name="camera" size={18} color="#fff" />
-            </TouchableOpacity>
+            {!usuario?.es_google && (
+              <TouchableOpacity style={estilos.botonCamara} onPress={() => navigation.navigate("EditarPerfil")}>
+                <Ionicons name="camera" size={18} color="#fff" />
+              </TouchableOpacity>
+            )}
           </View>
 
           <Text style={estilos.nombreUsuario}>{usuario?.nombre_usuario}</Text>
@@ -256,9 +260,11 @@ const PantallaPerfil = ({ navigation }: any) => {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={estilos.botonEditarPerfil} onPress={() => navigation.navigate("EditarPerfil")}>
-            <Text style={estilos.textoEditarPerfil}>Editar perfil</Text>
-          </TouchableOpacity>
+          {!usuario?.es_google && (
+            <TouchableOpacity style={estilos.botonEditarPerfil} onPress={() => navigation.navigate("EditarPerfil")}>
+              <Text style={estilos.textoEditarPerfil}>Editar perfil</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Sección de viajes */}
@@ -306,18 +312,23 @@ const PantallaPerfil = ({ navigation }: any) => {
       <Modal visible={modalVisible} animationType="fade" transparent onRequestClose={() => setModalVisible(false)}>
         <Pressable style={estilos.fondoModal} onPress={() => setModalVisible(false)}>
           <View style={estilos.contenidoModal}>
-            <TouchableOpacity
-              style={estilos.itemModal}
-              onPress={() => {
-                setModalVisible(false)
-                navigation.navigate("EditarPerfil")
-              }}
-            >
-              <Ionicons name="person-outline" size={22} color="#333" style={estilos.iconoModal} />
-              <Text style={estilos.textoItemModal}>Editar perfil</Text>
-            </TouchableOpacity>
+            {!usuario?.es_google && (
+              <>
+                <TouchableOpacity
+                  style={estilos.itemModal}
+                  onPress={() => {
+                    setModalVisible(false);
+                    navigation.navigate("EditarPerfil");
+                  }}
+                >
+                  <Ionicons name="person-outline" size={22} color="#333" style={estilos.iconoModal} />
+                  <Text style={estilos.textoItemModal}>Editar perfil</Text>
+                </TouchableOpacity>
 
-            <View style={estilos.divisorModal} />
+                <View style={estilos.divisorModal} />
+              </>
+            )}
+
 
             <TouchableOpacity
                 style={estilos.itemModal}
