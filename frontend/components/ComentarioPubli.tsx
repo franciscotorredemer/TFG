@@ -28,6 +28,12 @@ const ComentarioPubli: React.FC<Props> = ({
             onChangeText={onChangeComentario}
             multiline
           />
+
+          {/* Avisar al usuario */}
+          <Text style={estilos.aviso}>
+            Al publicar este viaje, aceptas que tu nombre de usuario, foto de perfil y las actividades y foto del viaje serán visibles públicamente para otros usuarios.
+          </Text>
+
           <View style={estilos.filaBotones}>
             <TouchableOpacity onPress={onClose} style={[estilos.boton, estilos.cancelar]}>
               <Text style={estilos.textoBoton}>Cancelar</Text>
@@ -67,6 +73,12 @@ const estilos = StyleSheet.create({
     padding: 10,
     minHeight: 80,
     textAlignVertical: "top",
+  },
+  aviso: {
+    fontSize: 12,
+    color: "gray",
+    marginTop: 8,
+    fontStyle: "italic",
   },
   filaBotones: {
     flexDirection: "row",

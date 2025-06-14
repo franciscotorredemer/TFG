@@ -53,7 +53,7 @@ def obtener_perfil(request):
     elif request.method == "PUT":
         data = request.data.copy()
 
-        # Proteger campos opcionales (bio, ubicacion, foto_perfil)
+        # Tener en cuenta peticiones parciales
         for campo in ['bio', 'ubicacion', 'foto_perfil']:
             if campo not in data:
                 data[campo] = getattr(usuario, campo, "") or ""
@@ -124,14 +124,14 @@ class ActividadEnViajeViewSet(viewsets.ModelViewSet):
 class GoogleLoginView(APIView):
     def post(self, request):
         access_token = request.data.get("access_token")
-        print("🔑 access_token recibido:", access_token)  # Debug
+        print(" access_token recibido:", access_token)  # Debug
 
         if not access_token:
             return Response({"error": "Falta el token de Google"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
+
             idinfo = id_token.verify_oauth2_token(access_token, google_requests.Request())
-            print("🆔 Google ID Info:", idinfo)  # Debug
 
             email = idinfo.get("email")
             username = idinfo.get("name") or email.split("@")[0]
@@ -160,11 +160,11 @@ class GoogleLoginView(APIView):
             })
 
         except ValueError as e:
-            print("❌ ValueError en verificación de token:", str(e))
+            print(" ValueError en verificación de token:", str(e))
             return Response({"error": f"Token no válido: {str(e)}"}, status=400)
 
         except Exception as e:
-            print("❌ Error general en GoogleLoginView:", str(e))
+            print("Error general en GoogleLoginView:", str(e))
             return Response({"error": str(e)}, status=500)
 
 
