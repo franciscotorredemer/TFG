@@ -25,14 +25,14 @@ export const subirImagenPerfil = async (uri: string, userId: string): Promise<st
     })
 
     if (!response.ok) {
-      console.error('❌ Error al subir imagen al bucket (HTTP):', await response.text())
+      console.error(' Error al subir imagen al bucket (HTTP):', await response.text())
       return null
     }
 
     const { data } = bucket.storage.from('fotosperfil').getPublicUrl(ruta)
     return data?.publicUrl || null
   } catch (err) {
-    console.error('❌ Error procesando la imagen:', err)
+    console.error('Error procesando la imagen:', err)
     return null
   }
 }

@@ -46,7 +46,7 @@ const PantallaLogin: React.FC<PantallaLoginProps> = ({ navigation }) => {
     native: "frontend://redirect",
   });
   
-  console.log("🔁 redirectUri (nativo):", redirectUri);
+  console.log(" redirectUri (nativo):", redirectUri);
   
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: "301085730099-k5el9elc21h38moj9g8n91lja5i1517h.apps.googleusercontent.com",
@@ -58,11 +58,11 @@ const PantallaLogin: React.FC<PantallaLoginProps> = ({ navigation }) => {
   
 
   useEffect(() => {
-    console.log("🔐 Google response:", response);
+    console.log("Google response:", response);
   
     if (response?.type === "success") {
       const idToken = response.authentication?.idToken;
-      console.log("✅ idToken:", idToken);
+      console.log(" idToken:", idToken);
   
       if (idToken) {
         enviarTokenAGoogleLogin(idToken);
