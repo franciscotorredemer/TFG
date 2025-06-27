@@ -17,6 +17,7 @@ class CustomUserSerializer(serializers.ModelSerializer):
         }
 
 class ActividadConFechaSerializer(serializers.ModelSerializer):
+    relacion_id = serializers.ReadOnlyField(source='id')
     id = serializers.ReadOnlyField(source='actividad.id')
     nombre = serializers.ReadOnlyField(source='actividad.nombre')
     descripcion = serializers.ReadOnlyField(source='actividad.descripcion')
@@ -28,7 +29,7 @@ class ActividadConFechaSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ActividadEnViaje
-        fields = ['id', 'nombre', 'descripcion', 'url_imagen', 'direccion', 'ubicacion', 'latitud','longitud', 'fecha_realizacion']
+        fields = ['relacion_id', 'id', 'nombre', 'descripcion', 'url_imagen', 'direccion', 'ubicacion', 'latitud','longitud', 'fecha_realizacion']
 
 class HotelSerializer(serializers.ModelSerializer):
     class Meta:
